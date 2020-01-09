@@ -1,6 +1,12 @@
 sidebar = shinydashboard::dashboardSidebar(
   width = '325',
   
+  shinyWidgets::pickerInput(
+    inputId = "dataset_picker", 
+    label = h3("Select Dataset"), 
+    choices = datasets
+  ),
+  
   shinyWidgets::prettyCheckbox(
     inputId = "markers_check_box",
     label = "Markers",
@@ -35,7 +41,7 @@ body = shinydashboard::dashboardBody(
 )
 
 shinydashboard::dashboardPage(
-  shinydashboard::dashboardHeader(title = data_information$name),
+  shinydashboard::dashboardHeader(title = "Sacramento Open Data"),
   sidebar,
   body
 )

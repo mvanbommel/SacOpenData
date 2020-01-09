@@ -14,12 +14,16 @@ server = function(input, output, session) {
     }
   })
   
+  data_information = reactive({
+    get_data_information(url = input$dataset_picker)
+  })
+  
   # * Map Output ----
   output$map = leaflet::renderLeaflet({
     
-    data = esri2sf::esri2sf(url = url, 
+    data = esri2sf::esri2sf(url = input$dataset_picker, 
                             where = "1=1",
-                            limit = data_information$max_record_count) %>%
+                            limit = data_information()$max_record_count) %>%
       as.data.frame() %>%
       geom_to_longitude_latitude()
     
