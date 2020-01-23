@@ -1,15 +1,22 @@
 `%>%` = dplyr::`%>%`
 
 # TO DO ----
-# * clean data (especially dispatch data locations)
+# * allow user to add inputs (use info in data_information$columns to determine input type)
 # * marker information - let user select columns to display?
+# * search by drawing box on map
+#
+
+# DATA ----
+# Initialize data_information for load (will update with observeEvent)
+data_information = NULL
 
 # FUNCTIONS ----
 get_data_information = function(url) {
   json = jsonlite::fromJSON(txt = paste0(url, "/?f=pjson"))
   
   information = list(name = json$name, 
-                     max_record_count = json$maxRecordCount)
+                     max_record_count = json$maxRecordCount,
+                     columns = json$fields)
 }
 
 geom_to_longitude_latitude = function(data) {
@@ -19,6 +26,10 @@ geom_to_longitude_latitude = function(data) {
       as.data.frame() %>% 
       setNames(c("longitude", "latitude"))
     
+    # Missing Latitude and Longitude to NA
+    coordinates$longitude[coordinates$longitude < -142] = NA
+    coordinates$latitude[coordinates$latitude < 32] = NA
+      
     data = cbind(data, coordinates) %>%
       dplyr::select(-geoms)
   }

@@ -7,6 +7,17 @@ sidebar = shinydashboard::dashboardSidebar(
     choices = datasets
   ),
   
+  shinyWidgets::pickerInput(
+    inputId = "filter_picker", 
+    label = h3("Add Filter"), 
+    choices = "Waiting for Data to Load",
+    options = list(`none-selected-text` = "Select Filter to Add",
+                   `selected-text-format` = "count > 1",
+                   `actions-box` = TRUE,
+                   `live-search` = TRUE), 
+    multiple = TRUE
+  ),
+  
   shinyWidgets::prettyCheckbox(
     inputId = "markers_check_box",
     label = "Markers",
