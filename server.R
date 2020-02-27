@@ -14,8 +14,10 @@ server = function(input, output, session) {
     }
   })
   
+  # Initialize Reactive Values ----
+  reactive_values = shiny::reactiveValues()
+  
   observeEvent(input$dataset_picker, {
-    print(input$dataset_picker)
     data_information = get_data_information(url = input$dataset_picker)
 
     shinyWidgets::updatePickerInput(
@@ -23,6 +25,24 @@ server = function(input, output, session) {
       inputId = "filter_picker", 
       choices = data_information$columns$name,
       selected = NULL)
+  })
+  
+  output$filters = shiny::renderUI({
+    number_of_filters = length(input$filter_picker)
+    if (number_of_filters > 0) {
+      lapply(1:number_of_filters, function(filter_index) {
+        shinyWidgets::pickerInput(inputId = paste0("filter_", filter_index),
+                                  label = h3(input$filter_picker[filter_index]), 
+                                  choices = "Waiting for Data to Load",
+                                  options = list(`none-selected-text` = "Select Filtering Values",
+                                                 `selected-text-format` = "count > 1",
+                                                 `actions-box` = TRUE,
+                                                 `live-search` = TRUE), 
+                                  multiple = TRUE)
+      })
+    } else {
+      NULL
+    }
   })
   
   # * Map Output ----

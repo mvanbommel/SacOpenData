@@ -6,6 +6,9 @@
 # * search by drawing box on map
 #
 
+# Next Step:
+# Replace "Waiting for Data to Load", in output$filters
+
 # DATA ----
 # Initialize data_information for load (will update with observeEvent)
 data_information = NULL

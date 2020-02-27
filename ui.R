@@ -1,3 +1,4 @@
+# Sidebar ----
 sidebar = shinydashboard::dashboardSidebar(
   width = '325',
   
@@ -17,6 +18,8 @@ sidebar = shinydashboard::dashboardSidebar(
                    `live-search` = TRUE), 
     multiple = TRUE
   ),
+  
+  shiny::uiOutput(outputId = "filters"),
   
   shinyWidgets::prettyCheckbox(
     inputId = "markers_check_box",
@@ -46,11 +49,13 @@ sidebar = shinydashboard::dashboardSidebar(
   )
 )
 
+# Body ----
 body = shinydashboard::dashboardBody(
   shinyjs::useShinyjs(),
   leaflet::leafletOutput("map")
 )
 
+# Page ----
 shinydashboard::dashboardPage(
   shinydashboard::dashboardHeader(title = "Sacramento Open Data"),
   sidebar,
