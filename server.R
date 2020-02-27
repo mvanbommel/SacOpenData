@@ -15,8 +15,9 @@ server = function(input, output, session) {
   })
   
   observeEvent(input$dataset_picker, {
+    print(input$dataset_picker)
     data_information = get_data_information(url = input$dataset_picker)
-    
+
     shinyWidgets::updatePickerInput(
       session = session,
       inputId = "filter_picker", 
@@ -26,12 +27,18 @@ server = function(input, output, session) {
   
   # * Map Output ----
   output$map = leaflet::renderLeaflet({
-    
-    data = esri2sf::esri2sf(url = input$dataset_picker, 
+
+    url = input$dataset_picker
+   
+    data_information = get_data_information(url = url)
+ 
+    data = esri2sf::esri2sf(url = url, 
                             where = "1=1",
                             limit = data_information$max_record_count) %>%
       as.data.frame() %>%
-      geom_to_longitude_latitude()
+      geom_to_longitude_latitude() %>%
+      # Need to filter NAs to avoid javascript error
+      filter(!is.na(latitude) & !is.na(longitude))
     
     map = leaflet::leaflet(data = data) %>% 
       leaflet::addTiles() 
