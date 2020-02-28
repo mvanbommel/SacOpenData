@@ -7,7 +7,7 @@
 #
 
 # Next Step:
-# Replace "Waiting for Data to Load", in output$filters
+# Add other variable types to create_filter_input() below
 
 # DATA ----
 # Initialize data_information for load (will update with observeEvent)
@@ -41,6 +41,32 @@ geom_to_longitude_latitude = function(data) {
 
 }
 
+get_distinct_filter_values = function(url, variable) {
+  values = jsonlite::fromJSON(paste0(url, "/query?where=1=1&outFields=", variable, "&returnGeometry=false&returnDistinctValues=true&outSR=4326&f=json"))$features$attributes
+  return(values[, 1])
+}
+
+create_filter_input = function(filter_index, filters, url, column_information) {
+  variable_type = column_information %>%
+    dplyr::filter(name == filters[filter_index]) %>%
+    dplyr::mutate(type = tolower(stringr::str_replace(string = type, pattern = "esriFieldType", replacement = ""))) %>%
+    dplyr::pull(type)
+  
+  if (variable_type == "integer") {
+    NULL
+  } else {
+    shinyWidgets::pickerInput(inputId = paste0("filter_", filter_index),
+                              label = h3(filters[filter_index]), 
+                              choices = get_distinct_filter_values(url = url, variable = filters[filter_index]),
+                              options = list(`none-selected-text` = "Select Filtering Values",
+                                             `selected-text-format` = "count > 1",
+                                             `actions-box` = TRUE,
+                                             `live-search` = TRUE), 
+                              multiple = TRUE)
+  }
+}
+
+
 
 # URL ----
 dataset_names = c("City Maintained Trees",
@@ -51,3 +77,4 @@ datasets = c("https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services
 
 names(datasets) = dataset_names
          
+

@@ -17,28 +17,32 @@ server = function(input, output, session) {
   # Initialize Reactive Values ----
   reactive_values = shiny::reactiveValues()
   
+  url = reactive({
+    input$dataset_picker
+  })
+  
+  data_information = reactive({
+    get_data_information(url = url())
+  })
+  
   observeEvent(input$dataset_picker, {
-    data_information = get_data_information(url = input$dataset_picker)
-
     shinyWidgets::updatePickerInput(
       session = session,
       inputId = "filter_picker", 
-      choices = data_information$columns$name,
+      choices = data_information()$columns$name,
       selected = NULL)
   })
   
   output$filters = shiny::renderUI({
-    number_of_filters = length(input$filter_picker)
+    filters = input$filter_picker
+    number_of_filters = length(filters)
+    
     if (number_of_filters > 0) {
       lapply(1:number_of_filters, function(filter_index) {
-        shinyWidgets::pickerInput(inputId = paste0("filter_", filter_index),
-                                  label = h3(input$filter_picker[filter_index]), 
-                                  choices = "Waiting for Data to Load",
-                                  options = list(`none-selected-text` = "Select Filtering Values",
-                                                 `selected-text-format` = "count > 1",
-                                                 `actions-box` = TRUE,
-                                                 `live-search` = TRUE), 
-                                  multiple = TRUE)
+        create_filter_input(filter_index = filter_index, 
+                            filters = filters, 
+                            url = url(), 
+                            column_information = data_information()$columns)
       })
     } else {
       NULL
@@ -47,14 +51,10 @@ server = function(input, output, session) {
   
   # * Map Output ----
   output$map = leaflet::renderLeaflet({
-
-    url = input$dataset_picker
-   
-    data_information = get_data_information(url = url)
  
-    data = esri2sf::esri2sf(url = url, 
+    data = esri2sf::esri2sf(url = url(), 
                             where = "1=1",
-                            limit = data_information$max_record_count) %>%
+                            limit = data_information()$max_record_count) %>%
       as.data.frame() %>%
       geom_to_longitude_latitude() %>%
       # Need to filter NAs to avoid javascript error
