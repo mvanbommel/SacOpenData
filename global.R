@@ -41,9 +41,15 @@ geom_to_longitude_latitude = function(data) {
 
 }
 
-get_distinct_filter_values = function(url, variable) {
-  values = jsonlite::fromJSON(paste0(url, "/query?where=1=1&outFields=", variable, "&returnGeometry=false&returnDistinctValues=true&outSR=4326&f=json"))$features$attributes
-  return(values[, 1])
+get_filter_values = function(url, variable, variable_type) {
+  if (variable_type == "integer") {
+    #
+    # Finish here
+    #
+  } else {
+    values = jsonlite::fromJSON(paste0(url, "/query?where=1=1&outFields=", variable, "&returnGeometry=false&returnDistinctValues=true&outSR=4326&f=json"))$features$attributes
+    return(values[, 1])
+  }
 }
 
 create_filter_input = function(filter_index, filters, url, column_information) {
@@ -52,12 +58,20 @@ create_filter_input = function(filter_index, filters, url, column_information) {
     dplyr::mutate(type = tolower(stringr::str_replace(string = type, pattern = "esriFieldType", replacement = ""))) %>%
     dplyr::pull(type)
   
+  filter_input_id = paste0("filter_", filter_index)
+  filter_label = h3(filters[filter_index])
+  
   if (variable_type == "integer") {
-    NULL
+    shiny::sliderInput(inputId = filter_input_id,
+                       label = filter_label,
+                       #
+                       # Finish here
+                       #
+                       )
   } else {
-    shinyWidgets::pickerInput(inputId = paste0("filter_", filter_index),
-                              label = h3(filters[filter_index]), 
-                              choices = get_distinct_filter_values(url = url, variable = filters[filter_index]),
+    shinyWidgets::pickerInput(inputId = filter_input_id,
+                              label = filter_label, 
+                              choices = get_filter_values(url = url, variable = filters[filter_index], variable_type = variable_type),
                               options = list(`none-selected-text` = "Select Filtering Values",
                                              `selected-text-format` = "count > 1",
                                              `actions-box` = TRUE,
