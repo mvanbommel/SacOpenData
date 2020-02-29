@@ -4,16 +4,26 @@
 # * allow user to add inputs (use info in data_information$columns to determine input type)
 # * marker information - let user select columns to display?
 # * search by drawing box on map
-#
+# * fix HTTP error on load
+# * loading animation
+# * add data view
+# * add data export
 
 # Next Step:
-# Add other variable types to create_filter_input() below
+# Use filter inputs to actually filter query
 
 # DATA ----
 # Initialize data_information for load (will update with observeEvent)
 data_information = NULL
 
 # FUNCTIONS ----
+epoch_to_calendar_date = function(epoch) {
+  as.Date(as.POSIXct(epoch / 1000, 
+                     origin = '1970-01-01',
+                     tz = 'America/Los_Angeles'),
+          format = '%y-%m-%d')
+}
+
 get_data_information = function(url) {
   json = jsonlite::fromJSON(txt = paste0(url, "/?f=pjson"))
   
@@ -42,14 +52,21 @@ geom_to_longitude_latitude = function(data) {
 }
 
 get_filter_values = function(url, variable, variable_type) {
-  if (variable_type == "integer") {
-    #
-    # Finish here
-    #
+  if (variable_type %in% c("smallinteger", "integer", "single", "double", "oid", "date")) {
+    min_value = jsonlite::fromJSON(paste0(url, "/query?where=", variable, "%20IS%20NOT%20NULL&outFields=", variable, "&orderByFields=", variable, "&returnGeometry=false&resultRecordCount=1&outSR=4326&f=json"))$features$attributes[, 1]
+    max_value = jsonlite::fromJSON(paste0(url, "/query?where=", variable, "%20IS%20NOT%20NULL&outFields=", variable, "&orderByFields=", variable, "%20DESC&returnGeometry=false&resultRecordCount=1&outSR=4326&f=json"))$features$attributes[, 1]
+    
+    if (variable_type == "date") {
+      min_value = epoch_to_calendar_date(epoch = min_value)
+      max_value = epoch_to_calendar_date(epoch = max_value)
+    }
+    
+    values = c(min_value, max_value)
   } else {
-    values = jsonlite::fromJSON(paste0(url, "/query?where=1=1&outFields=", variable, "&returnGeometry=false&returnDistinctValues=true&outSR=4326&f=json"))$features$attributes
-    return(values[, 1])
+    values = jsonlite::fromJSON(paste0(url, "/query?where=outFields=", variable, "&returnGeometry=false&returnDistinctValues=true&outSR=4326&f=json"))$features$attributes[, 1]
   }
+  
+  return(values)
 }
 
 create_filter_input = function(filter_index, filters, url, column_information) {
@@ -60,18 +77,23 @@ create_filter_input = function(filter_index, filters, url, column_information) {
   
   filter_input_id = paste0("filter_", filter_index)
   filter_label = h3(filters[filter_index])
+  filter_values = get_filter_values(url = url, variable = filters[filter_index], variable_type = variable_type)
   
   if (variable_type == "integer") {
-    shiny::sliderInput(inputId = filter_input_id,
+    shinyWidgets::numericRangeInput(inputId = filter_input_id,
                        label = filter_label,
-                       #
-                       # Finish here
-                       #
-                       )
+                       value = c(filter_values[1], filter_values[2]))
+  } else if (variable_type == "date") { 
+    shiny::dateRangeInput(inputId = filter_input_id, 
+                          label = filter_label,
+                          start = filter_values[1],
+                          end = filter_values[2],
+                          min = filter_values[1],
+                          max = filter_values[2])
   } else {
     shinyWidgets::pickerInput(inputId = filter_input_id,
                               label = filter_label, 
-                              choices = get_filter_values(url = url, variable = filters[filter_index], variable_type = variable_type),
+                              choices = filter_values,
                               options = list(`none-selected-text` = "Select Filtering Values",
                                              `selected-text-format` = "count > 1",
                                              `actions-box` = TRUE,
