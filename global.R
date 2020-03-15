@@ -1,35 +1,38 @@
 `%>%` = dplyr::`%>%`
 
 # TO DO ----
-# * allow user to add inputs (use info in data_information$columns to determine input type)
 # * marker information - let user select columns to display?
 # * search by drawing box on map
 # * fix HTTP error on load
 # * loading animation
 # * add data view
 # * add data export
+# * Error handling (especially in query)
 
 # Next Step:
-# Use filter inputs to actually filter query
 
 # DATA ----
+# * Data Sources ----
+dataset_names = c("City Maintained Trees",
+                  "Dispatch Data")
+
+datasets = c("https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/City_Maintained_Trees/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/cad_calls_year3/FeatureServer/0")
+
+names(datasets) = dataset_names
+
 # Initialize data_information for load (will update with observeEvent)
 data_information = NULL
 
+range_variable_types = c("smallinteger", "integer", "single", "double", "oid", "date")
+
 # FUNCTIONS ----
+# * Utility ----
 epoch_to_calendar_date = function(epoch) {
   as.Date(as.POSIXct(epoch / 1000, 
                      origin = '1970-01-01',
                      tz = 'America/Los_Angeles'),
           format = '%y-%m-%d')
-}
-
-get_data_information = function(url) {
-  json = jsonlite::fromJSON(txt = paste0(url, "/?f=pjson"))
-  
-  information = list(name = json$name, 
-                     max_record_count = json$maxRecordCount,
-                     columns = json$fields)
 }
 
 geom_to_longitude_latitude = function(data) {
@@ -42,17 +45,34 @@ geom_to_longitude_latitude = function(data) {
     # Missing Latitude and Longitude to NA
     coordinates$longitude[coordinates$longitude < -142] = NA
     coordinates$latitude[coordinates$latitude < 32] = NA
-      
+    
     data = cbind(data, coordinates) %>%
       dplyr::select(-geoms)
   }
   
   data
+  
+}
 
+# * Data ----
+get_data_information = function(url) {
+  json = jsonlite::fromJSON(txt = paste0(url, "/?f=pjson"))
+  
+  information = list(name = json$name, 
+                     max_record_count = json$maxRecordCount,
+                     columns = json$fields)
+}
+
+# * Filter ----
+get_variable_type = function(variable_name, column_information) {
+  variable_type = column_information %>%
+    dplyr::filter(variable_name == name) %>%
+    dplyr::mutate(type = tolower(stringr::str_replace(string = type, pattern = "esriFieldType", replacement = ""))) %>%
+    dplyr::pull(type)
 }
 
 get_filter_values = function(url, variable, variable_type) {
-  if (variable_type %in% c("smallinteger", "integer", "single", "double", "oid", "date")) {
+  if (variable_type %in% range_variable_types) {
     min_value = jsonlite::fromJSON(paste0(url, "/query?where=", variable, "%20IS%20NOT%20NULL&outFields=", variable, "&orderByFields=", variable, "&returnGeometry=false&resultRecordCount=1&outSR=4326&f=json"))$features$attributes[, 1]
     max_value = jsonlite::fromJSON(paste0(url, "/query?where=", variable, "%20IS%20NOT%20NULL&outFields=", variable, "&orderByFields=", variable, "%20DESC&returnGeometry=false&resultRecordCount=1&outSR=4326&f=json"))$features$attributes[, 1]
     
@@ -63,17 +83,16 @@ get_filter_values = function(url, variable, variable_type) {
     
     values = c(min_value, max_value)
   } else {
-    values = jsonlite::fromJSON(paste0(url, "/query?where=outFields=", variable, "&returnGeometry=false&returnDistinctValues=true&outSR=4326&f=json"))$features$attributes[, 1]
+    values = jsonlite::fromJSON(paste0(url, "/query?where=1=1&outFields=", variable, "&returnGeometry=false&returnDistinctValues=true&outSR=4326&f=json"))$features$attributes[, 1]
   }
   
   return(values)
 }
 
 create_filter_input = function(filter_index, filters, url, column_information) {
-  variable_type = column_information %>%
-    dplyr::filter(name == filters[filter_index]) %>%
-    dplyr::mutate(type = tolower(stringr::str_replace(string = type, pattern = "esriFieldType", replacement = ""))) %>%
-    dplyr::pull(type)
+
+  variable_type = get_variable_type(variable_name = filters[filter_index],
+                                    column_information = column_information)
   
   filter_input_id = paste0("filter_", filter_index)
   filter_label = h3(filters[filter_index])
@@ -104,13 +123,6 @@ create_filter_input = function(filter_index, filters, url, column_information) {
 
 
 
-# URL ----
-dataset_names = c("City Maintained Trees",
-                  "Dispatch Data")
 
-datasets = c("https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/City_Maintained_Trees/FeatureServer/0",
-             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/cad_calls_year3/FeatureServer/0")
-
-names(datasets) = dataset_names
          
 
