@@ -15,10 +15,20 @@ server = function(input, output, session) {
   })
   
   # Initialize Reactive Values ----
-  reactive_values = shiny::reactiveValues()
-  reactive_values$new_query_count = 0
-  reactive_values$previous_query = ""
+  reactive_values = reactiveValues(new_query_count = 0,
+                                   previous_query = "",
+                                   center_longitude = -121.5,
+                                   center_latitude = 38.55, 
+                                   zoom = 11)
 
+  # * Save Map Center / Zoom ----
+  observeEvent(input, { 
+    if (!is.null(input$map_zoom)) {
+      reactive_values$center_latitude = input$map_center$lat
+      reactive_values$center_longitude = input$map_center$lng
+      reactive_values$zoom = input$map_zoom
+    }
+  })
   
   # Dataset ----
   url = reactive({
@@ -94,39 +104,40 @@ server = function(input, output, session) {
           }
         }
       }
-      
-      # if (length(input$dispatch_map_draw_new_feature) > 0) {
-      #   
-      #   boundaries = as.data.frame(matrix(unlist(input$dispatch_map_draw_new_feature$geometry$coordinates),
-      #                                     ncol = 2, 
-      #                                     byrow = TRUE),
-      #                              stringsAsFactors = FALSE)
-      #   colnames(boundaries) = c('longitude', 'latitude')
-      #   
-      #   min_longitude = min(boundaries$longitude)
-      #   max_longitude = max(boundaries$longitude)
-      #   min_latitude = min(boundaries$latitude)
-      #   max_latitude = max(boundaries$latitude)
-      #   
-      #   # Convert longitude and latitude to X and Y for query
-      #   min_X_Coordinate = predict(longitude_model, newdata = data.frame(longitude = min_longitude))
-      #   max_X_Coordinate = predict(longitude_model, newdata = data.frame(longitude = max_longitude))
-      #   min_Y_Coordinate = predict(latitude_model, newdata = data.frame(latitude = min_latitude))
-      #   max_Y_Coordinate = predict(latitude_model, newdata = data.frame(latitude = max_latitude))
-      #   
-      #   shape_filter = paste0(" AND X_Coordinate >= ", min_X_Coordinate,
-      #                         " AND X_Coordinate <= ", max_X_Coordinate,
-      #                         " AND Y_Coordinate >= ", min_Y_Coordinate,
-      #                         " AND Y_Coordinate <= ", max_Y_Coordinate,
-      #                         " ")
-      #   
-      #   query = paste0(query, shape_filter)
-      #   
-      # }
     }
     
     return(filter_query)
   })
+  
+  query_parameters = reactive{
+    parameters = list()
+    
+    if (length(input$map_draw_new_feature) > 0) {
+      
+      boundaries = as.data.frame(matrix(unlist(input$map_draw_new_feature$geometry$coordinates),
+                                        ncol = 2,
+                                        byrow = TRUE),
+                                 stringsAsFactors = FALSE)
+      colnames(boundaries) = c('longitude', 'latitude')
+      
+      min_longitude = min(boundaries$longitude)
+      max_longitude = max(boundaries$longitude)
+      min_latitude = min(boundaries$latitude)
+      max_latitude = max(boundaries$latitude)
+
+      parameters$geometry = paste0("{'rings':[[
+                                              [", min_longitude, ",", min_latitude, "], 
+                                              [", min_longitude, ",", max_latitude, "],
+                                              [", max_longitude, ",", max_latitude, "],
+                                              [", max_longitude, ",", min_latitude, "],
+                                              [", min_longitude, ",", min_latitude, "],
+                                    ]]}")
+      parameters$geometryType = "esriGeometryPolygon"
+      parameters$inSR = 4326
+      parameters$spatialRel = "esriSpatialRelContains"
+    }
+    return(parameters)
+  }
   
   # Check to see if query has changed, and if so, add 1 to new_query_count reactive value
   observeEvent(query(), {
@@ -140,10 +151,13 @@ server = function(input, output, session) {
     paste0(url(), "/where=", query_filter())
   })
   
+  # * Query Data ----
   # Only update data if new query
   filtered_data = eventReactive(reactive_values$new_query_count, {
+    browser()
     data = esri2sf::esri2sf(url = url(), 
                             where = query_filter(),
+                            additional_parameters = query_parameters(),
                             #limit = data_information()$max_record_count) %>%
                             limit = 10) %>%
       as.data.frame() %>%
@@ -152,13 +166,27 @@ server = function(input, output, session) {
   
   # * Map Output ----
   output$map = leaflet::renderLeaflet({
- 
+    
     data = filtered_data() %>%
       # Need to filter NAs to avoid javascript error
       filter(!is.na(latitude) & !is.na(longitude))
     
     map = leaflet::leaflet(data = data) %>% 
-      leaflet::addTiles() 
+      leaflet::addTiles() %>%
+      leaflet::setView(lat = reactive_values$center_latitude, 
+                       lng = reactive_values$center_longitude, 
+                       zoom = reactive_values$zoom) %>%
+      leaflet.extras::addDrawToolbar(
+        targetGroup = 'Selected',
+        polylineOptions = FALSE,
+        circleMarkerOptions = FALSE,
+        markerOptions = FALSE,
+        rectangleOptions = leaflet.extras::drawRectangleOptions(shapeOptions = leaflet.extras::drawShapeOptions(fillOpacity = 0,
+                                                                                                                color = 'white',
+                                                                                                                weight = 3)),
+        polygonOptions = FALSE,
+        circleOptions = FALSE,
+        editOptions = leaflet.extras::editToolbarOptions(edit = FALSE, selectedPathOptions = leaflet.extras::selectedPathOptions()))
     
     if (input$markers_check_box) {
       if (input$marker_groups_check_box) {
@@ -179,6 +207,29 @@ server = function(input, output, session) {
                                    ~data$latitude,
                                    radius = 10) 
     }
+    
+    # ** Add Rectangle ----
+    if (length(input$map_draw_new_feature) > 0) {
+      boundaries = as.data.frame(matrix(unlist(input$map_draw_new_feature$geometry$coordinates),
+                                        ncol = 2, 
+                                        byrow = TRUE),
+                                 stringsAsFactors = FALSE)
+      colnames(boundaries) = c('longitude', 'latitude')
+      
+      min_longitude = min(boundaries$longitude)
+      max_longitude = max(boundaries$longitude)
+      min_latitude = min(boundaries$latitude)
+      max_latitude = max(boundaries$latitude)
+      
+      map = map %>%
+        leaflet::addRectangles(
+          data = data,
+          lng1 = min_longitude, lat1 = min_latitude,
+          lng2 = max_longitude, lat2 = max_latitude,
+          fillColor = "transparent",
+          layerId = 'selected_rectangle')
+    }
+    
     
     return(map)
   })
