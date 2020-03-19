@@ -22,7 +22,8 @@ server = function(input, output, session) {
                                    zoom = 11)
 
   # * Save Map Center / Zoom ----
-  observeEvent(input, { 
+  observeEvent(c(reactive_values$new_query_count,
+                 input$map_draw_new_feature), { 
     if (!is.null(input$map_zoom)) {
       reactive_values$center_latitude = input$map_center$lat
       reactive_values$center_longitude = input$map_center$lng
@@ -109,7 +110,7 @@ server = function(input, output, session) {
     return(filter_query)
   })
   
-  query_parameters = reactive{
+  query_parameters = reactive({
     parameters = list()
     
     if (length(input$map_draw_new_feature) > 0) {
@@ -130,14 +131,14 @@ server = function(input, output, session) {
                                               [", min_longitude, ",", max_latitude, "],
                                               [", max_longitude, ",", max_latitude, "],
                                               [", max_longitude, ",", min_latitude, "],
-                                              [", min_longitude, ",", min_latitude, "],
+                                              [", min_longitude, ",", min_latitude, "]
                                     ]]}")
       parameters$geometryType = "esriGeometryPolygon"
       parameters$inSR = 4326
       parameters$spatialRel = "esriSpatialRelContains"
     }
     return(parameters)
-  }
+  })
   
   # Check to see if query has changed, and if so, add 1 to new_query_count reactive value
   observeEvent(query(), {
@@ -153,23 +154,20 @@ server = function(input, output, session) {
   
   # * Query Data ----
   # Only update data if new query
-  filtered_data = eventReactive(reactive_values$new_query_count, {
-    browser()
+  filtered_data = eventReactive(c(reactive_values$new_query_count,
+                                  input$map_draw_new_feature), {
     data = esri2sf::esri2sf(url = url(), 
                             where = query_filter(),
                             additional_parameters = query_parameters(),
                             #limit = data_information()$max_record_count) %>%
                             limit = 10) %>%
-      as.data.frame() %>%
-      geom_to_longitude_latitude()
+      as.data.frame() 
   })
   
   # * Map Output ----
   output$map = leaflet::renderLeaflet({
     
-    data = filtered_data() %>%
-      # Need to filter NAs to avoid javascript error
-      filter(!is.na(latitude) & !is.na(longitude))
+    data = filtered_data()
     
     map = leaflet::leaflet(data = data) %>% 
       leaflet::addTiles() %>%
@@ -188,24 +186,31 @@ server = function(input, output, session) {
         circleOptions = FALSE,
         editOptions = leaflet.extras::editToolbarOptions(edit = FALSE, selectedPathOptions = leaflet.extras::selectedPathOptions()))
     
-    if (input$markers_check_box) {
-      if (input$marker_groups_check_box) {
-        map = map %>% 
-          leaflet::addMarkers(~data$longitude, 
-                              ~data$latitude, 
-                              clusterOptions = leaflet::markerClusterOptions())
-      } else {
-        map = map %>% 
-          leaflet::addMarkers(~data$longitude, 
-                              ~data$latitude)
+    if (nrow(data) > 0) {
+      data = data %>%
+        geom_to_longitude_latitude() %>%
+        # Need to filter NAs to avoid javascript error
+        filter(!is.na(latitude) & !is.na(longitude))
+      
+      if (input$markers_check_box) {
+        if (input$marker_groups_check_box) {
+          map = map %>% 
+            leaflet::addMarkers(~data$longitude, 
+                                ~data$latitude, 
+                                clusterOptions = leaflet::markerClusterOptions())
+        } else {
+          map = map %>% 
+            leaflet::addMarkers(~data$longitude, 
+                                ~data$latitude)
+        }
       }
-    }
-    
-    if (input$heatmap_check_box) {
-      map = map %>% 
-        leaflet.extras::addHeatmap(~data$longitude, 
-                                   ~data$latitude,
-                                   radius = 10) 
+      
+      if (input$heatmap_check_box) {
+        map = map %>% 
+          leaflet.extras::addHeatmap(~data$longitude, 
+                                     ~data$latitude,
+                                     radius = 10) 
+      }
     }
     
     # ** Add Rectangle ----
