@@ -21,6 +21,17 @@ sidebar = shinydashboard::dashboardSidebar(
   
   shiny::uiOutput(outputId = "filters"),
   
+  shinyWidgets::pickerInput(
+    inputId = "marker_picker", 
+    label = h3("Markers"), 
+    choices = "Waiting for Data to Load",
+    options = list(`none-selected-text` = "Select Marker Values to Display",
+                   `selected-text-format` = "count > 1",
+                   `actions-box` = TRUE,
+                   `live-search` = TRUE), 
+    multiple = TRUE
+  ),
+  
   shinyWidgets::prettyCheckbox(
     inputId = "markers_check_box",
     label = "Markers",
@@ -52,6 +63,8 @@ sidebar = shinydashboard::dashboardSidebar(
 # Body ----
 body = shinydashboard::dashboardBody(
   shinyjs::useShinyjs(),
+  tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),
+  tags$script(src = "scripts.js"),
   leaflet::leafletOutput("map")
 )
 

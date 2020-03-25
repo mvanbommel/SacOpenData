@@ -1,0 +1,6 @@
+/* Style the dropdown menus (force down and no wider than sidebar) */
+.dropdown-menu.open {
+  top: 100%;
+  bottom: auto;
+  width: 100%;
+}

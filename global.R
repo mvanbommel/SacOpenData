@@ -1,15 +1,14 @@
 `%>%` = dplyr::`%>%`
 
 # TO DO ----
-# * marker information - let user select columns to display?
-# * search by drawing box on map
-# * fix HTTP error on load
+# * fix HTTP error on load (still an issue?)
 # * loading animation
 # * add data view
 # * add data export
 # * Error handling (especially in query)
 
 # Next Step:
+# - delete drawn shapes
 
 # DATA ----
 # * Data Sources ----
@@ -120,9 +119,3 @@ create_filter_input = function(filter_index, filters, url, column_information) {
                               multiple = TRUE)
   }
 }
-
-
-
-
-         
-

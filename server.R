@@ -45,7 +45,15 @@ server = function(input, output, session) {
     shinyWidgets::updatePickerInput(
       session = session,
       inputId = "filter_picker", 
-      choices = data_information()$columns$name,
+      choices = sort(data_information()$columns$name),
+      selected = NULL)
+  })
+  
+  observeEvent(input$dataset_picker, {
+    shinyWidgets::updatePickerInput(
+      session = session,
+      inputId = "marker_picker", 
+      choices = sort(data_information()$columns$name),
       selected = NULL)
   })
   
@@ -156,15 +164,49 @@ server = function(input, output, session) {
   # Only update data if new query
   filtered_data = eventReactive(c(reactive_values$new_query_count,
                                   input$map_draw_new_feature), {
-    data = esri2sf::esri2sf(url = url(), 
+                                    
+    data = try(esri2sf::esri2sf(url = url(), 
                             where = query_filter(),
                             additional_parameters = query_parameters(),
                             #limit = data_information()$max_record_count) %>%
                             limit = 10) %>%
-      as.data.frame() 
+      as.data.frame())
+    
+    if ('try-error' %in% class(data)) {
+      # Sometimes a HTTP2 errors occurs, if so try again
+      data = try(esri2sf::esri2sf(url = url(), 
+                                  where = query_filter(),
+                                  additional_parameters = query_parameters(),
+                                  #limit = data_information()$max_record_count) %>%
+                                  limit = 10) %>%
+                   as.data.frame())
+    }
+    
+    data
   })
   
   # * Map Output ----
+  marker_popup = reactive({
+    marker_variables = input$marker_picker
+    number_marker_variables = length(marker_variables)
+    
+    column_information = data_information()$columns
+    
+    if (number_marker_variables > 0 & all(marker_variables %in% column_information$name)) {
+      data = filtered_data()
+      
+      marker_string = ""
+      
+      for (variable in marker_variables) {
+        marker_string = paste0(marker_string, variable, ": ", data[, variable], "<br>")
+      }
+    } else {
+      marker_string = NULL
+    }
+    
+    return(marker_string)
+  })
+  
   output$map = leaflet::renderLeaflet({
     
     data = filtered_data()
@@ -197,11 +239,13 @@ server = function(input, output, session) {
           map = map %>% 
             leaflet::addMarkers(~data$longitude, 
                                 ~data$latitude, 
+                                popup = ~marker_popup(),
                                 clusterOptions = leaflet::markerClusterOptions())
         } else {
           map = map %>% 
             leaflet::addMarkers(~data$longitude, 
-                                ~data$latitude)
+                                ~data$latitude,
+                                popup = ~marker_popup())
         }
       }
       
