@@ -1,14 +1,19 @@
 `%>%` = dplyr::`%>%`
 
 # TO DO ----
+# * add warning popup for querying large numbers of rows (also prevent from being more than total available rows)
 # * fix HTTP error on load (still an issue?)
 # * loading animation
 # * add data view
 # * add data export
-# * Error handling (especially in query)
+# * Error handling - maybe catch in get_total_observations()? (especially in query) - also with get_data_information()
 
 # Next Step:
-# - delete drawn shapes
+# 
+
+# Generalizing to Other data providers
+# * changing dataset_name, and datasets
+# * editing geom_to_longitude_latitude()
 
 # DATA ----
 # * Data Sources ----
@@ -38,7 +43,7 @@ geom_to_longitude_latitude = function(data) {
   
   if ("geoms" %in% colnames(data)) {
     coordinates = do.call(rbind, sf::st_geometry(data$geoms)) %>% 
-      as.data.frame() %>% 
+      as.data.frame(row.names = as.character(1:nrow(data))) %>% 
       setNames(c("longitude", "latitude"))
     
     # Missing Latitude and Longitude to NA
@@ -60,6 +65,14 @@ get_data_information = function(url) {
   information = list(name = json$name, 
                      max_record_count = json$maxRecordCount,
                      columns = json$fields)
+  
+  return(information)
+}
+
+get_total_observations = function(url) {
+  count = jsonlite::fromJSON(txt = paste0(url, "/query?where=1=1&outFields=*&returnDistinctValues=true&returnCountOnly=true&outSR=4326&f=json"))$count
+  
+  return(count)
 }
 
 # * Filter ----
@@ -68,6 +81,8 @@ get_variable_type = function(variable_name, column_information) {
     dplyr::filter(variable_name == name) %>%
     dplyr::mutate(type = tolower(stringr::str_replace(string = type, pattern = "esriFieldType", replacement = ""))) %>%
     dplyr::pull(type)
+  
+  return(variable_type)
 }
 
 get_filter_values = function(url, variable, variable_type) {
@@ -89,7 +104,7 @@ get_filter_values = function(url, variable, variable_type) {
 }
 
 create_filter_input = function(filter_index, filters, url, column_information) {
-
+  
   variable_type = get_variable_type(variable_name = filters[filter_index],
                                     column_information = column_information)
   
@@ -98,24 +113,26 @@ create_filter_input = function(filter_index, filters, url, column_information) {
   filter_values = get_filter_values(url = url, variable = filters[filter_index], variable_type = variable_type)
   
   if (variable_type == "integer") {
-    shinyWidgets::numericRangeInput(inputId = filter_input_id,
-                       label = filter_label,
-                       value = c(filter_values[1], filter_values[2]))
+    input = shinyWidgets::numericRangeInput(inputId = filter_input_id,
+                                            label = filter_label,
+                                            value = c(filter_values[1], filter_values[2]))
   } else if (variable_type == "date") { 
-    shiny::dateRangeInput(inputId = filter_input_id, 
-                          label = filter_label,
-                          start = filter_values[1],
-                          end = filter_values[2],
-                          min = filter_values[1],
-                          max = filter_values[2])
+    input = shiny::dateRangeInput(inputId = filter_input_id, 
+                                  label = filter_label,
+                                  start = filter_values[1],
+                                  end = filter_values[2],
+                                  min = filter_values[1],
+                                  max = filter_values[2])
   } else {
-    shinyWidgets::pickerInput(inputId = filter_input_id,
-                              label = filter_label, 
-                              choices = filter_values,
-                              options = list(`none-selected-text` = "Select Filtering Values",
-                                             `selected-text-format` = "count > 1",
-                                             `actions-box` = TRUE,
-                                             `live-search` = TRUE), 
-                              multiple = TRUE)
+    input = shinyWidgets::pickerInput(inputId = filter_input_id,
+                                      label = filter_label, 
+                                      choices = filter_values,
+                                      options = list(`none-selected-text` = "Select Filtering Values",
+                                                     `selected-text-format` = "count > 1",
+                                                     `actions-box` = TRUE,
+                                                     `live-search` = TRUE), 
+                                      multiple = TRUE)
   }
+  
+  return(input)
 }

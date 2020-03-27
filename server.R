@@ -40,7 +40,33 @@ server = function(input, output, session) {
     get_data_information(url = url())
   })
   
-  # Filters ----
+  total_observations = reactive({
+    get_total_observations(url = url())
+  })
+  
+  max_observations = reactive({
+    as.integer(min(total_observations(), 10 * data_information()$max_record_count))
+  })
+  
+  # UI Elements ----
+  output$number_of_observations_ui = renderUI({
+    max_record_count = data_information()$max_record_count
+    max_value = max_observations()
+   
+    tagList(
+      shiny::numericInput(inputId = "number_of_observations",
+                          label = shiny::h3("Number of Data Points"),
+                          value = 100,
+                          min = 0,
+                          max = max_value),
+      shiny::helpText(shiny::HTML(paste0("Maximum ", max_value, ".",
+                                         ifelse(max_value > max_record_count, 
+                                                paste0("<br/>Note: values over ", max_record_count, " will slow down results."), 
+                                                "")
+      )))
+    )
+  })
+  
   observeEvent(input$dataset_picker, {
     shinyWidgets::updatePickerInput(
       session = session,
@@ -57,6 +83,7 @@ server = function(input, output, session) {
       selected = NULL)
   })
   
+  # * Filters ----
   output$filters = shiny::renderUI({
     filters = input$filter_picker
     number_of_filters = length(filters)
@@ -163,23 +190,36 @@ server = function(input, output, session) {
   # * Query Data ----
   # Only update data if new query
   filtered_data = eventReactive(c(reactive_values$new_query_count,
-                                  input$map_draw_new_feature), {
-                                    
-    data = try(esri2sf::esri2sf(url = url(), 
-                            where = query_filter(),
-                            additional_parameters = query_parameters(),
-                            #limit = data_information()$max_record_count) %>%
-                            limit = 10) %>%
-      as.data.frame())
+                                  input$map_draw_new_feature,
+                                  input$number_of_observations), {
     
-    if ('try-error' %in% class(data)) {
-      # Sometimes a HTTP2 errors occurs, if so try again
-      data = try(esri2sf::esri2sf(url = url(), 
-                                  where = query_filter(),
-                                  additional_parameters = query_parameters(),
-                                  #limit = data_information()$max_record_count) %>%
-                                  limit = 10) %>%
-                   as.data.frame())
+    req(input$number_of_observations)              
+                                    
+    rows_to_query = min(input$number_of_observations, max_observations())                               
+    data = NULL
+    max_record_count = data_information()$max_record_count
+   
+    while (rows_to_query > 0) {   
+      query_limit = min(rows_to_query, max_record_count)
+      
+      data = try(rbind(data, 
+                       esri2sf::esri2sf(url = url(), 
+                                        where = query_filter(),
+                                        additional_parameters = query_parameters(),
+                                        limit = query_limit) %>%
+                         as.data.frame()))
+    
+      if ('try-error' %in% class(data)) {
+        # Sometimes a HTTP2 errors occurs, if so try again
+        data = try(rbind(data, 
+                         esri2sf::esri2sf(url = url(), 
+                                          where = query_filter(),
+                                          additional_parameters = query_parameters(),
+                                          limit = query_limit) %>%
+                           as.data.frame()))
+      }
+      
+      rows_to_query = rows_to_query - query_limit
     }
     
     data
@@ -210,7 +250,7 @@ server = function(input, output, session) {
   output$map = leaflet::renderLeaflet({
     
     data = filtered_data()
-    
+
     map = leaflet::leaflet(data = data) %>% 
       leaflet::addTiles() %>%
       leaflet::setView(lat = reactive_values$center_latitude, 
@@ -281,5 +321,14 @@ server = function(input, output, session) {
     
     
     return(map)
+  })
+  
+  # * Clear Rectangle ----
+  observeEvent(input$clear_rectangle, {
+    if (input$clear_rectangle == 'TRUE') {
+      # Set inputs (passed as messages) to NULL using the resetInput javascript function
+      session$sendCustomMessage(type = "resetInput", message = "map_draw_new_feature")
+      session$sendCustomMessage(type = "resetInput", message = "clear_rectangle")
+    }
   })
 }

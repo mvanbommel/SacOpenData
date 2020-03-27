@@ -4,13 +4,15 @@ sidebar = shinydashboard::dashboardSidebar(
   
   shinyWidgets::pickerInput(
     inputId = "dataset_picker", 
-    label = h3("Select Dataset"), 
+    label = shiny::h3("Select Dataset"), 
     choices = datasets
   ),
   
+  shiny::uiOutput(outputId = "number_of_observations_ui"),
+  
   shinyWidgets::pickerInput(
     inputId = "filter_picker", 
-    label = h3("Add Filter"), 
+    label =shiny::h3("Add Filter"), 
     choices = "Waiting for Data to Load",
     options = list(`none-selected-text` = "Select Filter to Add",
                    `selected-text-format` = "count > 1",
@@ -23,7 +25,7 @@ sidebar = shinydashboard::dashboardSidebar(
   
   shinyWidgets::pickerInput(
     inputId = "marker_picker", 
-    label = h3("Markers"), 
+    label = shiny::h3("Markers"), 
     choices = "Waiting for Data to Load",
     options = list(`none-selected-text` = "Select Marker Values to Display",
                    `selected-text-format` = "count > 1",
