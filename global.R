@@ -8,7 +8,8 @@
 # * Error handling - maybe catch in get_total_observations()? (especially in query) - also with get_data_information()
 
 # Next Step:
-# 
+# - handle live_api = FALSE
+# - don't change map location / zoom when selecting new markers
 
 # Generalizing to Other data providers
 # * changing dataset_name, and datasets

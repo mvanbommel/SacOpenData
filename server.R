@@ -216,11 +216,12 @@ server = function(input, output, session) {
   })
   
   # * Query Data ----
-  query_data = function(query_limit) {
+  query_data = function(query_limit, offset = 0) {
     data = tryCatch(esri2sf::esri2sf(url = url(), 
                                      where = query_filter(),
                                      additional_parameters = query_parameters(),
-                                     limit = query_limit) %>%
+                                     limit = query_limit,
+                                     offset = offset) %>%
                       as.data.frame(),
                     error = function(err) {
                       NULL
@@ -235,27 +236,36 @@ server = function(input, output, session) {
     
     req(input$number_of_observations)              
                                     
-    rows_to_query = min(input$number_of_observations, max_observations())                               
+    rows_to_query = min(input$number_of_observations, max_observations())
+    offset = 0
     data = NULL
     max_record_count = data_information()$max_record_count
-   
-    while (rows_to_query > 0) {   
+    rows_returned = max_record_count
+    
+    # Stop loop if no more rows to query or fewer than max rows returned
+    while (rows_to_query > 0 && rows_returned == max_record_count) {   
       query_limit = min(rows_to_query, max_record_count)
-
-      new_data = query_data(query_limit = query_limit)
+      
+      new_data = query_data(query_limit = query_limit, 
+                            offset = offset)
       
       if (is.null(data)) {
         # Sometimes a HTTP2 errors occurs, if so try again
-        new_data = query_data(query_limit = query_limit)
+        new_data = query_data(query_limit = query_limit, 
+                              offset = offset)
       }
       
-      if (!is.null(new_data) && nrow(new_data) > 0) {
+      rows_returned = nrow(new_data)
+      
+      if (!is.null(new_data) && rows_returned > 0) {
         data = rbind(data, new_data)
       }
+      
+      offset = offset + query_limit
       rows_to_query = rows_to_query - query_limit
     }
     
-    return(data)
+    return(unique(data))
   })
   
   # * Map Output ----
