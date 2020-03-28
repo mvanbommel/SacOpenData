@@ -1,7 +1,6 @@
 `%>%` = dplyr::`%>%`
 
 # TO DO ----
-# * add warning popup for querying large numbers of rows (also prevent from being more than total available rows)
 # * fix HTTP error on load (still an issue?)
 # * loading animation
 # * add data view
@@ -60,17 +59,29 @@ geom_to_longitude_latitude = function(data) {
 
 # * Data ----
 get_data_information = function(url) {
-  json = jsonlite::fromJSON(txt = paste0(url, "/?f=pjson"))
+  json = tryCatch(jsonlite::fromJSON(txt = paste0(url, "/?f=pjson")),
+                  error = function(err) {
+                    NULL
+                  })
   
-  information = list(name = json$name, 
-                     max_record_count = json$maxRecordCount,
-                     columns = json$fields)
+  if (!is.null(json)) {
+    information = list(name = json$name, 
+                       max_record_count = json$maxRecordCount,
+                       columns = json$fields)
+  } else {
+    information = NULL
+  }
   
   return(information)
 }
 
-get_total_observations = function(url) {
-  count = jsonlite::fromJSON(txt = paste0(url, "/query?where=1=1&outFields=*&returnDistinctValues=true&returnCountOnly=true&outSR=4326&f=json"))$count
+get_observation_count = function(url, where = "1=1") {
+  count = tryCatch(R.utils::withTimeout(jsonlite::fromJSON(txt = paste0(url, "/query?where=", where, "&outFields=*&returnDistinctValues=true&returnCountOnly=true&outSR=4326&f=json"))$count,
+                                        timeout = 5,
+                                        onTimeout = 'error'),
+                   error = function(err) {
+                     NULL
+                   })
   
   return(count)
 }

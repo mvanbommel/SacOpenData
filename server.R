@@ -15,7 +15,8 @@ server = function(input, output, session) {
   })
   
   # Initialize Reactive Values ----
-  reactive_values = reactiveValues(new_query_count = 0,
+  reactive_values = reactiveValues(live_api = TRUE,
+                                   new_query_count = 0,
                                    previous_query = "",
                                    center_longitude = -121.5,
                                    center_latitude = 38.55, 
@@ -37,11 +38,38 @@ server = function(input, output, session) {
   })
   
   data_information = reactive({
-    get_data_information(url = url())
+    information = get_data_information(url = url())
+    
+    if (is.null(information)) {
+      # Sometimes a HTTP2 errors occurs, if so try again
+      information = get_data_information(url = url())
+    }
+    
+    if (is.null(information)) {
+      reactive_values$live_api = FALSE
+    } else {
+      reactive_values$live_api = TRUE
+    }
+    
+    return(information)
+    
   })
   
   total_observations = reactive({
-    get_total_observations(url = url())
+    count = get_observation_count(url = url())
+    
+    if (is.null(count)) {
+      # Sometimes a HTTP2 errors occurs, if so try again
+      count = get_observation_count(url = url())
+    }
+    
+    if (is.null(count)) {
+      reactive_values$live_api = FALSE
+    } else {
+      reactive_values$live_api = TRUE
+    }
+    
+    return(count)
   })
   
   max_observations = reactive({
@@ -188,6 +216,18 @@ server = function(input, output, session) {
   })
   
   # * Query Data ----
+  query_data = function(query_limit) {
+    data = tryCatch(esri2sf::esri2sf(url = url(), 
+                                     where = query_filter(),
+                                     additional_parameters = query_parameters(),
+                                     limit = query_limit) %>%
+                      as.data.frame(),
+                    error = function(err) {
+                      NULL
+                    })
+    return(data)
+  }
+  
   # Only update data if new query
   filtered_data = eventReactive(c(reactive_values$new_query_count,
                                   input$map_draw_new_feature,
@@ -201,28 +241,21 @@ server = function(input, output, session) {
    
     while (rows_to_query > 0) {   
       query_limit = min(rows_to_query, max_record_count)
+
+      new_data = query_data(query_limit = query_limit)
       
-      data = try(rbind(data, 
-                       esri2sf::esri2sf(url = url(), 
-                                        where = query_filter(),
-                                        additional_parameters = query_parameters(),
-                                        limit = query_limit) %>%
-                         as.data.frame()))
-    
-      if ('try-error' %in% class(data)) {
+      if (is.null(data)) {
         # Sometimes a HTTP2 errors occurs, if so try again
-        data = try(rbind(data, 
-                         esri2sf::esri2sf(url = url(), 
-                                          where = query_filter(),
-                                          additional_parameters = query_parameters(),
-                                          limit = query_limit) %>%
-                           as.data.frame()))
+        new_data = query_data(query_limit = query_limit)
       }
       
+      if (!is.null(new_data) && nrow(new_data) > 0) {
+        data = rbind(data, new_data)
+      }
       rows_to_query = rows_to_query - query_limit
     }
     
-    data
+    return(data)
   })
   
   # * Map Output ----
