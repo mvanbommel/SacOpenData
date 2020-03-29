@@ -67,7 +67,13 @@ body = shinydashboard::dashboardBody(
   shinyjs::useShinyjs(),
   tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),
   tags$script(src = "scripts.js"),
-  leaflet::leafletOutput("map")
+  shiny::tabsetPanel(type = "tabs",
+    shiny::tabPanel(title = "Map", leaflet::leafletOutput("map")),
+    shiny::tabPanel(title = "Data", 
+                    shiny::downloadButton(outputId = "download_data",
+                                          label = "Download"),
+                    reactable::reactableOutput("data"))
+  )
 )
 
 # Page ----

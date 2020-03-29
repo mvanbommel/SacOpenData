@@ -296,10 +296,39 @@ server = function(input, output, session) {
       rows_to_query = rows_to_query - query_limit
     }
     
-    return(unique(data))
+    data = data %>%
+      geom_to_longitude_latitude() %>%
+      unique()
+    
+    return(data)
   })
   
-  # Map Output ----
+  
+  # * Output ----
+  output$data = reactable::renderReactable({
+    data = filtered_data()
+    
+    if (is.null(data)) {
+      data = data.frame("Data" = "No results meet filter criteria.")
+    }
+    
+    return(reactable::reactable(data))
+  })
+  
+  # * Download ----
+  output$download_data = shiny::downloadHandler(
+    filename = function() {
+      dataset_name = names(datasets[which(datasets == input$dataset_picker)])
+      paste0(dataset_name, ".csv")
+    },
+    content = function(file) {
+      write.csv(x = filtered_data(), 
+                file = file, 
+                row.names = FALSE)
+    }
+  )
+  
+  # Map ----
   marker_popup = reactive({
     marker_variables = input$marker_picker
     number_marker_variables = length(marker_variables)
@@ -320,7 +349,7 @@ server = function(input, output, session) {
     
     return(marker_string)
   })
-  
+
   output$map = leaflet::renderLeaflet({
     
     data = filtered_data()
@@ -344,7 +373,6 @@ server = function(input, output, session) {
     
     if (!is.null(data) && nrow(data) > 0) {
       data = data %>%
-        geom_to_longitude_latitude() %>%
         # Need to filter NAs to avoid javascript error
         filter(!is.na(latitude) & !is.na(longitude))
       

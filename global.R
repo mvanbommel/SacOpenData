@@ -3,10 +3,10 @@
 # TO DO ----
 # * fix HTTP error on load (still an issue?)
 # * loading animation
-# * add data view
-# * add data export
 # * add datasets
 # * make map look better
+# * make table look better
+# * notificaiton during query?
 
 # Next Step:
 
@@ -41,17 +41,19 @@ epoch_to_calendar_date = function(epoch) {
 
 geom_to_longitude_latitude = function(data) {
   
-  if ("geoms" %in% colnames(data)) {
-    coordinates = do.call(rbind, sf::st_geometry(data$geoms)) %>% 
-      as.data.frame(row.names = as.character(1:nrow(data))) %>% 
-      setNames(c("longitude", "latitude"))
-    
-    # Missing Latitude and Longitude to NA
-    coordinates$longitude[coordinates$longitude < -142] = NA
-    coordinates$latitude[coordinates$latitude < 32] = NA
-    
-    data = cbind(data, coordinates) %>%
-      dplyr::select(-geoms)
+  if (!is.null(data)) {
+    if ("geoms" %in% colnames(data)) {
+      coordinates = do.call(rbind, sf::st_geometry(data$geoms)) %>% 
+        as.data.frame(row.names = as.character(1:nrow(data))) %>% 
+        setNames(c("longitude", "latitude"))
+      
+      # Missing Latitude and Longitude to NA
+      coordinates$longitude[coordinates$longitude < -142] = NA
+      coordinates$latitude[coordinates$latitude < 32] = NA
+      
+      data = cbind(data, coordinates) %>%
+        dplyr::select(-geoms)
+    }
   }
   
   data
