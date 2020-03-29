@@ -22,6 +22,7 @@ server = function(input, output, session) {
                                    center_latitude = 38.55, 
                                    zoom = 11)
 
+  # Observations ----
   # * Save Map Center / Zoom ----
   observeEvent(c(reactive_values$new_query_count,
                  input$map_draw_new_feature,
@@ -31,6 +32,42 @@ server = function(input, output, session) {
       reactive_values$center_latitude = input$map_center$lat
       reactive_values$center_longitude = input$map_center$lng
       reactive_values$zoom = input$map_zoom
+    }
+  })
+  
+  # * No Query Results ----
+  observe({
+    if (is.null(filtered_data())) {
+      if (reactive_values$live_api) {
+        message = "No results meet filter criteria."
+        type = "message"
+        duration = 5
+      } else {
+        message = "API Error: Please refresh page and try again."
+        type = "error"
+        duration = NULL
+      }
+      shiny::showNotification(ui = message, 
+                              type = type, 
+                              duration = duration)
+    }
+  })
+  
+  # * New Query ----
+  # Check to see if query has changed, and if so, add 1 to new_query_count reactive value
+  observeEvent(query(), {
+    if (!is.null(query()) && query() != reactive_values$previous_query) {
+      reactive_values$new_query_count = reactive_values$new_query_count + 1
+    }
+    reactive_values$previous_query = query()
+  })
+  
+  # * Clear Rectangle ----
+  observeEvent(input$clear_rectangle, {
+    if (input$clear_rectangle == 'TRUE') {
+      # Set inputs (passed as messages) to NULL using the resetInput javascript function
+      session$sendCustomMessage(type = "resetInput", message = "map_draw_new_feature")
+      session$sendCustomMessage(type = "resetInput", message = "clear_rectangle")
     }
   })
   
@@ -205,14 +242,6 @@ server = function(input, output, session) {
     return(parameters)
   })
   
-  # Check to see if query has changed, and if so, add 1 to new_query_count reactive value
-  observeEvent(query(), {
-    if (!is.null(query()) && query() != reactive_values$previous_query) {
-      reactive_values$new_query_count = reactive_values$new_query_count + 1
-    }
-    reactive_values$previous_query = query()
-  })
-  
   query = reactive({
     paste0(url(), "/where=", query_filter())
   })
@@ -235,9 +264,9 @@ server = function(input, output, session) {
   filtered_data = eventReactive(c(reactive_values$new_query_count,
                                   input$map_draw_new_feature,
                                   input$number_of_observations), {
-    
-    req(input$number_of_observations)              
-                                    
+  
+    req(input$number_of_observations)  
+                                  
     rows_to_query = min(input$number_of_observations, max_observations())
     offset = 0
     data = NULL
@@ -245,7 +274,7 @@ server = function(input, output, session) {
     rows_returned = max_record_count
     
     # Stop loop if no more rows to query or fewer than max rows returned
-    while (rows_to_query > 0 && rows_returned == max_record_count) {   
+    while (reactive_values$live_api && rows_to_query > 0 && rows_returned == max_record_count) {   
       query_limit = min(rows_to_query, max_record_count)
       
       new_data = query_data(query_limit = query_limit, 
@@ -270,7 +299,7 @@ server = function(input, output, session) {
     return(unique(data))
   })
   
-  # * Map Output ----
+  # Map Output ----
   marker_popup = reactive({
     marker_variables = input$marker_picker
     number_marker_variables = length(marker_variables)
@@ -313,7 +342,7 @@ server = function(input, output, session) {
         circleOptions = FALSE,
         editOptions = leaflet.extras::editToolbarOptions(edit = FALSE, selectedPathOptions = leaflet.extras::selectedPathOptions()))
     
-    if (nrow(data) > 0) {
+    if (!is.null(data) && nrow(data) > 0) {
       data = data %>%
         geom_to_longitude_latitude() %>%
         # Need to filter NAs to avoid javascript error
@@ -342,7 +371,7 @@ server = function(input, output, session) {
       }
     }
     
-    # ** Add Rectangle ----
+    # * Add Rectangle ----
     if (length(input$map_draw_new_feature) > 0) {
       boundaries = as.data.frame(matrix(unlist(input$map_draw_new_feature$geometry$coordinates),
                                         ncol = 2, 
@@ -366,14 +395,5 @@ server = function(input, output, session) {
     
     
     return(map)
-  })
-  
-  # * Clear Rectangle ----
-  observeEvent(input$clear_rectangle, {
-    if (input$clear_rectangle == 'TRUE') {
-      # Set inputs (passed as messages) to NULL using the resetInput javascript function
-      session$sendCustomMessage(type = "resetInput", message = "map_draw_new_feature")
-      session$sendCustomMessage(type = "resetInput", message = "clear_rectangle")
-    }
   })
 }

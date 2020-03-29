@@ -5,10 +5,11 @@
 # * loading animation
 # * add data view
 # * add data export
-# * Error handling - maybe catch in get_total_observations()? (especially in query) - also with get_data_information()
+# * add datasets
+# * make map look better
 
 # Next Step:
-# - handle live_api = FALSE
+
 
 # Generalizing to Other data providers
 # * changing dataset_name, and datasets
