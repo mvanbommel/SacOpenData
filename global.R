@@ -9,7 +9,6 @@
 
 # Next Step:
 # - handle live_api = FALSE
-# - don't change map location / zoom when selecting new markers
 
 # Generalizing to Other data providers
 # * changing dataset_name, and datasets

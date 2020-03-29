@@ -24,7 +24,9 @@ server = function(input, output, session) {
 
   # * Save Map Center / Zoom ----
   observeEvent(c(reactive_values$new_query_count,
-                 input$map_draw_new_feature), { 
+                 input$map_draw_new_feature,
+                 input$marker_picker,
+                 input$number_of_observations), { 
     if (!is.null(input$map_zoom)) {
       reactive_values$center_latitude = input$map_center$lat
       reactive_values$center_longitude = input$map_center$lng
