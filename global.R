@@ -3,10 +3,12 @@
 # TO DO ----
 # * fix HTTP error on load (still an issue?)
 # * loading animation
-# * add datasets
-# * make map look better
+# * test datasets
 # * make table look better
 # * notificaiton during query?
+# * add links to City of Sac page
+# * CSS tooltips for buttons?
+# * alphabetize datasets
 
 # Next Step:
 
@@ -18,10 +20,60 @@
 # DATA ----
 # * Data Sources ----
 dataset_names = c("City Maintained Trees",
-                  "Dispatch Data")
+                  "Dispatch Data",
+                  "GPS Static Survey",
+                  "Off Street Parking",
+                  "Survey Benchmarks",
+                  "EV Chargers",
+                  "Parks Public Restrooms",
+                  "Signs",
+                  "Fire Department 911 Call Response",
+                  "Streetcar Stops (Proposed)",
+                  "Dispatch Data 2017",
+                  "Crime Data 2014",
+                  "Crime Data 2015",
+                  "Crime Data 2016",
+                  "Crime Data 2017",
+                  "Dispatch Data 2015",
+                  "Dispatch Data 2014",
+                  "Dispatch Data From Current Year",
+                  "Schools",
+                  "Fire Stations",
+                  "Dispatch Data From Two Years Ago",
+                  "Dispatch Data From One Year Ago",
+                  "Street Lights",
+                  "Dispatch Data 2016",
+                  "Hospitals",
+                  "On Street Parking",
+                  "311 Calls")
 
 datasets = c("https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/City_Maintained_Trees/FeatureServer/0",
-             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/cad_calls_year3/FeatureServer/0")
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/cad_calls_year3/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/GPS_StaticSurvey/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/PublicAccessParkingMapService/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/SurveyBenchmarks/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/EV_Chargers/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Parks_Public_Restrooms/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Signs/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/GetNFIRSRespondReport/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Streetcar_Stops/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/CAD_2017/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Sacramento_Crime_Data_2014/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Sacramento_Crime_Data_2015/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Sacramento_Crime_Data_2016/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Sacramento_Crime_Data_2017/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Sacramento_Dispatch_Data_2015/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/CAD_2014/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/cad_calls_year3/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Schools/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Fire_Stations/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/cad_calls_year1/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/cad_calls_year2/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Street_Lights/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Sacramento_Dispatch_Data_2016/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Hospitals/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/ONSTREETPARKING/FeatureServer/0",
+             "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/311Calls_OSC_View/FeatureServer/0")
 
 names(datasets) = dataset_names
 
@@ -123,7 +175,7 @@ create_filter_input = function(filter_index, filters, url, column_information) {
                                     column_information = column_information)
   
   filter_input_id = paste0("filter_", filter_index)
-  filter_label = h3(filters[filter_index])
+  filter_label = shiny::h4(filters[filter_index])
   filter_values = get_filter_values(url = url, variable = filters[filter_index], variable_type = variable_type)
   
   if (variable_type == "integer") {

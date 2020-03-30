@@ -1,8 +1,9 @@
-/* Style the dropdown menus (force down and no wider than sidebar) */
-.dropdown-menu.open {
-  top: 100%;
-  bottom: auto;
-  width: 100%;
+/******************************************************************************
+* MAP
+******************************************************************************/
+/* Make the map full screen */
+#map {
+  height: calc(100vh - 122px) !important;
 }
 
 /* Custom Leaflet delete button */
@@ -16,7 +17,94 @@
   width: 30px;
 }
 
+/******************************************************************************
+* SIDEBAR
+******************************************************************************/
+/* Add scroll to sidebar if longer than page length */
+.sidebar {
+  height: 90vh; 
+  
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+/* Style the dropdown menus (force down and no wider than sidebar) */
+.dropdown-menu.open {
+  top: 100%;
+  bottom: auto;
+  width: 100%;
+}
+
+/* Reduce bottom margin for input groups */
+.form-group {
+    margin-bottom: -5px;
+}
+
 /* Indent help blocks to align with inputs */
 .help-block {
   padding-left: 15px;
+}
+
+
+/******************************************************************************
+* NAVBAR
+******************************************************************************/
+/* Control main header color widths */
+.main-header .logo {
+  width: 325px;
+  float: left;
+}
+
+.main-header .navbar-static-top {
+  margin-left: 325px;
+}
+
+
+/* Set button colors to match navbar (and change on hover) */
+#github_button {
+  background-color: #357ca5;
+  border-color: #357ca5;
+}
+
+#github_button:hover {
+  background-color: #f4f4f4;
+  border-color: #f4f4f4;
+}
+
+/* Screens more narrow than 350px */
+/* Subtract 50px to leave room for sidebar toggle button */
+@media (max-width: 350px) {
+  .sidebar {
+    width: calc(100vw - 50px);
+  }
+  
+  #new_points {
+    left: 0px;
+  }
+  
+  .main-header .logo {
+    width: calc(100vw - 50px);
+  }
+  .main-header .navbar-static-top {
+    margin-left: calc(100vw - 50px);
+  }
+}
+
+
+/******************************************************************************
+* SIDEBAR AND NAVBAR
+******************************************************************************/
+/* Navbar and Sidebar Button Color */
+.skin-blue .main-header .navbar .sidebar-toggle {
+  background-color: #357ca5;
+  color: #fff;
+}
+
+.skin-blue .main-header .navbar .sidebar-toggle:hover {
+  background-color: #222d32;
+  color: #fff;
+}
+
+.skin-blue .main-header .navbar {
+  background-color: #357ca5;
 }
