@@ -20,7 +20,7 @@ sidebar = shinydashboard::dashboardSidebar(
   shinyWidgets::pickerInput(
     inputId = "dataset_picker", 
     label = shiny::h3("Select Dataset"), 
-    choices = datasets
+    choices = dataset_picker_vector
   ),
   
   shiny::uiOutput(outputId = "number_of_observations_ui"),

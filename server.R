@@ -318,7 +318,7 @@ server = function(input, output, session) {
   # * Download ----
   output$download_data = shiny::downloadHandler(
     filename = function() {
-      dataset_name = names(datasets[which(datasets == input$dataset_picker)])
+      dataset_name = dataset_df$name[which(dataset_df$api == input$dataset_picker)]
       paste0(dataset_name, ".csv")
     },
     content = function(file) {
