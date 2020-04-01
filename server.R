@@ -1,5 +1,6 @@
 server = function(input, output, session) {
   
+  # Initial Settings ----
   # Start with Marker Groups Check Box enabled
   shiny::observe({
     shinyjs::enable("marker_groups_check_box")
@@ -14,6 +15,11 @@ server = function(input, output, session) {
     }
   })
   
+  # Start with download button disabled
+  shiny::observe({
+    shinyjs::disable("data_source_button")
+  })
+  
   # Initialize Reactive Values ----
   reactive_values = reactiveValues(live_api = TRUE,
                                    new_query_count = 0,
@@ -23,11 +29,20 @@ server = function(input, output, session) {
                                    zoom = 11)
 
   # Observations ----
+  # * Update Data Soruce Button ----
+  shiny::observeEvent(input$data_source_button, {
+    
+    dataset_link = dataset_df$url[which(dataset_df$api == input$dataset_picker)]
+    
+    shinyjs::onclick(id = "data_source_button",
+                     expr = shinyjs::runjs(paste0("window.open('", dataset_link, "', '_blank')")))
+  })
+  
   # * Save Map Center / Zoom ----
-  observeEvent(c(reactive_values$new_query_count,
-                 input$map_draw_new_feature,
-                 input$marker_picker,
-                 input$number_of_observations), { 
+  shiny::observeEvent(c(reactive_values$new_query_count,
+                        input$map_draw_new_feature,
+                        input$marker_picker,
+                        input$number_of_observations), { 
     if (!is.null(input$map_zoom)) {
       reactive_values$center_latitude = input$map_center$lat
       reactive_values$center_longitude = input$map_center$lng
@@ -36,7 +51,7 @@ server = function(input, output, session) {
   })
   
   # * No Query Results ----
-  observe({
+  shiny::observe({
     if (is.null(filtered_data())) {
       if (reactive_values$live_api) {
         message = "No results meet filter criteria."
@@ -55,7 +70,7 @@ server = function(input, output, session) {
   
   # * New Query ----
   # Check to see if query has changed, and if so, add 1 to new_query_count reactive value
-  observeEvent(query(), {
+  shiny::observeEvent(query(), {
     if (!is.null(query()) && query() != reactive_values$previous_query) {
       reactive_values$new_query_count = reactive_values$new_query_count + 1
     }
@@ -63,7 +78,7 @@ server = function(input, output, session) {
   })
   
   # * Clear Rectangle ----
-  observeEvent(input$clear_rectangle, {
+  shiny::observeEvent(input$clear_rectangle, {
     if (input$clear_rectangle == 'TRUE') {
       # Set inputs (passed as messages) to NULL using the resetInput javascript function
       session$sendCustomMessage(type = "resetInput", message = "map_draw_new_feature")
@@ -72,11 +87,11 @@ server = function(input, output, session) {
   })
   
   # Dataset ----
-  url = reactive({
+  url = shiny::reactive({
     input$dataset_picker
   })
   
-  data_information = reactive({
+  data_information = shiny::reactive({
     information = get_data_information(url = url())
     
     if (is.null(information)) {
@@ -94,7 +109,7 @@ server = function(input, output, session) {
     
   })
   
-  total_observations = reactive({
+  total_observations = shiny::reactive({
     count = get_observation_count(url = url())
     
     if (is.null(count)) {
@@ -111,12 +126,12 @@ server = function(input, output, session) {
     return(count)
   })
   
-  max_observations = reactive({
+  max_observations = shiny::reactive({
     as.integer(min(total_observations(), 10 * data_information()$max_record_count))
   })
   
   # UI Elements ----
-  output$number_of_observations_ui = renderUI({
+  output$number_of_observations_ui = shiny::renderUI({
     max_record_count = data_information()$max_record_count
     max_value = max_observations()
    
@@ -134,7 +149,7 @@ server = function(input, output, session) {
     )
   })
   
-  observeEvent(input$dataset_picker, {
+  shiny::observeEvent(input$dataset_picker, {
     shinyWidgets::updatePickerInput(
       session = session,
       inputId = "filter_picker", 
@@ -142,7 +157,7 @@ server = function(input, output, session) {
       selected = NULL)
   })
   
-  observeEvent(input$dataset_picker, {
+  shiny::observeEvent(input$dataset_picker, {
     shinyWidgets::updatePickerInput(
       session = session,
       inputId = "marker_picker", 
@@ -171,7 +186,7 @@ server = function(input, output, session) {
   
   # Data ----
   # * Create Query ----
-  query_filter = reactive({
+  query_filter = shiny::reactive({
     filter_query = "1=1"
    
     filters = input$filter_picker
@@ -212,7 +227,7 @@ server = function(input, output, session) {
     return(filter_query)
   })
   
-  query_parameters = reactive({
+  query_parameters = shiny::reactive({
     parameters = list()
     
     if (length(input$map_draw_new_feature) > 0) {
@@ -242,7 +257,7 @@ server = function(input, output, session) {
     return(parameters)
   })
   
-  query = reactive({
+  query = shiny::reactive({
     paste0(url(), "/where=", query_filter())
   })
   
@@ -261,9 +276,9 @@ server = function(input, output, session) {
   }
   
   # Only update data if new query
-  filtered_data = eventReactive(c(reactive_values$new_query_count,
-                                  input$map_draw_new_feature,
-                                  input$number_of_observations), {
+  filtered_data = shiny::eventReactive(c(reactive_values$new_query_count,
+                                         input$map_draw_new_feature,
+                                         input$number_of_observations), {
   
     req(input$number_of_observations)  
                                   
@@ -329,7 +344,7 @@ server = function(input, output, session) {
   )
   
   # Map ----
-  marker_popup = reactive({
+  marker_popup = shiny::reactive({
     marker_variables = input$marker_picker
     number_marker_variables = length(marker_variables)
     
@@ -351,6 +366,9 @@ server = function(input, output, session) {
   })
 
   output$map = leaflet::renderLeaflet({
+    
+    
+    shinyjs::disable("data_source_button")
     
     data = filtered_data()
 
@@ -421,6 +439,7 @@ server = function(input, output, session) {
           layerId = 'selected_rectangle')
     }
     
+    shinyjs::enable("data_source_button")
     
     return(map)
   })

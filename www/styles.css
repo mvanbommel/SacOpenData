@@ -61,12 +61,12 @@
 
 
 /* Set button colors to match navbar (and change on hover) */
-#github_button {
+#github_button, #data_source_button {
   background-color: #357ca5;
   border-color: #357ca5;
 }
 
-#github_button:hover {
+#github_button:hover, #data_source_button:hover {
   background-color: #f4f4f4;
   border-color: #f4f4f4;
 }

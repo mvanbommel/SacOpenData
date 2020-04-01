@@ -1,14 +1,13 @@
 `%>%` = dplyr::`%>%`
 
 # TO DO ----
-# * fix HTTP error on load (still an issue?)
-# * loading animation
 # * test datasets
 # * make table look better
+# * help buttons or functionality
 # * notificaiton during query?
-# * add links to City of Sac page
 # * CSS tooltips for buttons?
-# * alphabetize datasets
+# * loading animation
+# * fix HTTP error on load (still an issue?)
 
 # Next Step:
 

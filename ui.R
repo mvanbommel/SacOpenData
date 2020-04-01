@@ -2,14 +2,17 @@
 header = shinydashboard::dashboardHeader(
   title = "Sacramento Open Data",
   
-  tags$li(class = "dropdown",
-          tags$li(class = "dropdown navbar-button", 
-                  id = "github_button",
-                  shiny::actionButton(inputId = "github_button",
-                                      label = "",
-                                      icon = icon("github", "fa-3x"),
-                                      onclick ="window.open('https://github.com/mvanbommel/SacOpenData', '_blank')"))
-          
+  tags$li(
+    class = "dropdown",
+    tags$li(class = "dropdown navbar-button", 
+            shiny::actionButton(inputId = "data_source_button",
+                                label = "",
+                                icon = icon("info-circle", "fa-3x"))),
+    tags$li(class = "dropdown navbar-button", 
+            shiny::actionButton(inputId = "github_button",
+                                label = "",
+                                icon = icon("github", "fa-3x"),
+                                onclick = "window.open('https://github.com/mvanbommel/SacOpenData', '_blank')"))
   )
 )
 
