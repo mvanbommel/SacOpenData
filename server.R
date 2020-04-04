@@ -268,7 +268,8 @@ server = function(input, output, session) {
                                      offset = offset) %>%
                       as.data.frame(),
                     error = function(err) {
-                      NULL
+                      print(paste0("Error in query: ", err))
+                      return(NULL)
                     })
     return(data)
   }

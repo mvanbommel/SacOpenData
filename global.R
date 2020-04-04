@@ -1,8 +1,6 @@
 `%>%` = dplyr::`%>%`
 
 # TO DO ----
-# * test datasets
-# * make table look better
 # * help buttons or functionality
 # * notificaiton during query?
 # * CSS tooltips for buttons?
@@ -10,39 +8,27 @@
 # * fix HTTP error on load (still an issue?)
 
 # Next Step:
-# 
+# - update packages
+# - test datasets
 
 # Generalizing to Other data providers
-# * changing dataset_name, and datasets
-# * editing geom_to_longitude_latitude()
+# * changing dataset_list
+# * editing latitude_bounds and longitude_bounds
 
 # DATA ----
+# * Map Bounds
+# Set the bounds for points that will be displayed on the map
+# To show all points, regardless of location, use values:
+#  - latitude_bounds = c(-90, 90)
+#  - longitude_bounds = c(-180, 180)
+latitude_bounds = c(37, 42)
+longitude_bounds = c(-125, -118)
+
 # * Data Sources ----
 dataset_list = list(
   list(name = "City Maintained Trees",
        api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/City_Maintained_Trees/FeatureServer/0",
        url = "http://data.cityofsacramento.org/datasets/b9b716e09b5048179ab648bb4518452b_0"),
-  list(name = "Crime Data From Current Year",
-       api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/general_offenses_year3/FeatureServer/0",
-       url = "http://data.cityofsacramento.org/datasets/64279ca193a54189aa9214a29d32520c_0"),
-  list(name = "Crime Data From One Year Ago",
-       api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/general_offenses_year2/FeatureServer/0",
-       url = "http://data.cityofsacramento.org/datasets/0026878c24454e16b169b3fb26130751_0"),
-  list(name = "Crime Data From Two Years Ago",
-       api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/general_offenses_year1/FeatureServer/0",
-       url = "http://data.cityofsacramento.org/datasets/84e4483fc0624d678d7608a4fa12aae1_0"),
-  list(name = "Crime Data 2017",
-       api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Sacramento_Crime_Data_2017/FeatureServer/0",
-       url = "http://data.cityofsacramento.org/datasets/6023972e7b994c58bf87c4424b60539b_0"),
-  list(name = "Crime Data 2016",
-       api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Sacramento_Crime_Data_2016/FeatureServer/0",
-       url = "http://data.cityofsacramento.org/datasets/64ab02f77ad94bfb807e501c57f720e8_0"),
-  list(name = "Crime Data 2015",
-       api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Sacramento_Crime_Data_2015/FeatureServer/0",
-       url = "http://data.cityofsacramento.org/datasets/bdf818394cc1460da18c2265b8234892_0"),
-  list(name = "Crime Data 2014",
-       api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Sacramento_Crime_Data_2014/FeatureServer/0",
-       url = "http://data.cityofsacramento.org/datasets/3bea9eb86f894c88930cecc583ed5a71_0"),
   list(name = "Dispatch Data From Current Year",
        api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/cad_calls_year3/FeatureServer/0",
        url = "http://data.cityofsacramento.org/datasets/9efe7653009b448f8d177c1da0cc068f_0"),
@@ -79,9 +65,6 @@ dataset_list = list(
   list(name = "Hospitals",
        api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Hospitals/FeatureServer/0",
        url = "http://data.cityofsacramento.org/datasets/0363364d7ddb4ff4aadd7057187a7a05_0"),
-  list(name  = "Off Street Parking",
-       api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/PublicAccessParkingMapService/FeatureServer/0",
-       url = "http://data.cityofsacramento.org/datasets/1a75cd6cbadc4059990cd40620d81c56_0"),
   list(name = "On Street Parking",
        api = "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/ONSTREETPARKING/FeatureServer/0",
        url = "http://data.cityofsacramento.org/datasets/0060469c57864becb76a036d23236143_0"),
@@ -114,6 +97,8 @@ dataset_picker_vector = dataset_df$api
 names(dataset_picker_vector) = dataset_df$name
 
 
+
+
 # Initialize data_information for load (will update with observeEvent)
 data_information = NULL
 
@@ -129,16 +114,17 @@ epoch_to_calendar_date = function(epoch) {
 }
 
 geom_to_longitude_latitude = function(data) {
-  
   if (!is.null(data)) {
     if ("geoms" %in% colnames(data)) {
       coordinates = do.call(rbind, sf::st_geometry(data$geoms)) %>% 
         as.data.frame(row.names = as.character(1:nrow(data))) %>% 
         setNames(c("longitude", "latitude"))
-      
-      # Missing Latitude and Longitude to NA
-      coordinates$longitude[coordinates$longitude < -142] = NA
-      coordinates$latitude[coordinates$latitude < 32] = NA
+     
+      # Values outside of bounds to NA
+      coordinates$longitude[coordinates$longitude < longitude_bounds[1]] = NA
+      coordinates$longitude[coordinates$longitude > longitude_bounds[2]] = NA
+      coordinates$latitude[coordinates$latitude < latitude_bounds[1]] = NA
+      coordinates$latitude[coordinates$latitude > latitude_bounds[2]] = NA
       
       data = cbind(data, coordinates) %>%
         dplyr::select(-geoms)
@@ -200,7 +186,7 @@ get_filter_values = function(url, variable, variable_type) {
     
     values = c(min_value, max_value)
   } else {
-    values = jsonlite::fromJSON(paste0(url, "/query?where=1=1&outFields=", variable, "&returnGeometry=false&returnDistinctValues=true&outSR=4326&f=json"))$features$attributes[, 1]
+    values = sort(jsonlite::fromJSON(paste0(url, "/query?where=1=1&outFields=", variable, "&returnGeometry=false&returnDistinctValues=true&outSR=4326&f=json"))$features$attributes[, 1])
   }
   
   return(values)
