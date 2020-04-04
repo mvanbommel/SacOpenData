@@ -18,6 +18,19 @@
 }
 
 /******************************************************************************
+* Data
+******************************************************************************/
+.center {
+  text-align: center;
+}
+
+#download_data {
+  background-color: #357ca5;
+  color: #fff;
+  margin: 10px;
+}
+
+/******************************************************************************
 * SIDEBAR
 ******************************************************************************/
 /* Add scroll to sidebar if longer than page length */
@@ -64,6 +77,7 @@
 #github_button, #data_source_button {
   background-color: #357ca5;
   border-color: #357ca5;
+  color: #fff;
 }
 
 #github_button:hover, #data_source_button:hover {
@@ -108,3 +122,4 @@
 .skin-blue .main-header .navbar {
   background-color: #357ca5;
 }
+

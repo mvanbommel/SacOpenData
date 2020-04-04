@@ -31,11 +31,9 @@ server = function(input, output, session) {
   # Observations ----
   # * Update Data Soruce Button ----
   shiny::observeEvent(input$data_source_button, {
-    
     dataset_link = dataset_df$url[which(dataset_df$api == input$dataset_picker)]
     
-    shinyjs::onclick(id = "data_source_button",
-                     expr = shinyjs::runjs(paste0("window.open('", dataset_link, "', '_blank')")))
+    shinyjs::runjs(paste0("window.open('", dataset_link, "', '_blank')"))
   })
   
   # * Save Map Center / Zoom ----

@@ -88,9 +88,12 @@ body = shinydashboard::dashboardBody(
   shiny::tabsetPanel(type = "tabs",
     shiny::tabPanel(title = "Map", leaflet::leafletOutput("map")),
     shiny::tabPanel(title = "Data", 
-                    shiny::downloadButton(outputId = "download_data",
-                                          label = "Download"),
-                    reactable::reactableOutput("data"))
+                    shiny::div(class = "center",
+                      shiny::downloadButton(outputId = "download_data",
+                                            label = "Download"),
+                      shiny::br(),
+                      reactable::reactableOutput("data"))
+    )
   )
 )
 

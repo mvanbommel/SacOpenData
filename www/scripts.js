@@ -21,7 +21,6 @@ $(document).on('click tap', '.delete-button', function () {
 });
 
 
-
 Shiny.addCustomMessageHandler('resetInput', function(variableName) {
   // Set input variable to NULL
   Shiny.setInputValue(variableName, null);
