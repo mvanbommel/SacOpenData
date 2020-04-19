@@ -1,17 +1,14 @@
 `%>%` = dplyr::`%>%`
 
 # TO DO ----
-# * help buttons or functionality
-# * notificaiton during query?
-# * CSS tooltips for buttons?
-# * loading animation
+# * fix trees cultivar filter error
 # * fix HTTP error on load (still an issue?)
 
 # Next Step:
-# - update packages
-# - test datasets
+# - 
 
 # Generalizing to Other data providers
+# * make separate file to hold changing data?
 # * changing dataset_list
 # * editing latitude_bounds and longitude_bounds
 
@@ -95,6 +92,10 @@ dataset_df = dplyr::bind_rows(lapply(dataset_list, data.frame, stringsAsFactors 
 
 dataset_picker_vector = dataset_df$api
 names(dataset_picker_vector) = dataset_df$name
+
+map_center_longitude = -121.5
+map_center_latitude = 38.55
+map_zoom = 11
 
 
 

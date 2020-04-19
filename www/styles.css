@@ -74,13 +74,16 @@
 
 
 /* Set button colors to match navbar (and change on hover) */
-#github_button, #data_source_button {
+#github_button, #data_source_button, #help_button {
   background-color: #357ca5;
   border-color: #357ca5;
+  border-width: 0px;
   color: #fff;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
-#github_button:hover, #data_source_button:hover {
+#github_button:hover, #data_source_button:hover, #help_button:hover {
   background-color: #f4f4f4;
   border-color: #f4f4f4;
 }
@@ -123,3 +126,29 @@
   background-color: #357ca5;
 }
 
+
+/******************************************************************************
+* LOADING MODAL
+******************************************************************************/
+.modal-body {
+  text-align: center;
+}
+
+.modal-dialog {
+  position: relative;
+  top: 40%;
+}
+
+
+/******************************************************************************
+* HELP
+******************************************************************************/
+.introjs-helperLayer {
+  opacity: 0.7;
+}
+
+/* Adjust step number position */
+.introjs-helperNumberLayer {
+  top: 0px;
+  left: 0px;
+}

@@ -17,23 +17,32 @@ server = function(input, output, session) {
   
   # Start with download button disabled
   shiny::observe({
+    shinyjs::disable("github_button")
     shinyjs::disable("data_source_button")
+    shinyjs::disable("help_button")
   })
   
   # Initialize Reactive Values ----
   reactive_values = reactiveValues(live_api = TRUE,
                                    new_query_count = 0,
                                    previous_query = "",
-                                   center_longitude = -121.5,
-                                   center_latitude = 38.55, 
-                                   zoom = 11)
+                                   center_longitude = map_center_longitude,
+                                   center_latitude = map_center_latitude, 
+                                   zoom = map_zoom)
 
   # Observations ----
-  # * Update Data Soruce Button ----
+  # * Data Soruce Button ----
   shiny::observeEvent(input$data_source_button, {
     dataset_link = dataset_df$url[which(dataset_df$api == input$dataset_picker)]
     
     shinyjs::runjs(paste0("window.open('", dataset_link, "', '_blank')"))
+  })
+  
+  # * Help Button
+  shiny::observeEvent(input$help_button, {
+   rintrojs::introjs(session = session,
+                     options = list("skipLabel" = "Exit",
+                                    "overlayOpacity" = "0.9"))
   })
   
   # * Save Map Center / Zoom ----
@@ -280,6 +289,11 @@ server = function(input, output, session) {
                                          input$number_of_observations), {
   
     req(input$number_of_observations)  
+        
+    # Create loading modal                                   
+    shiny::showModal(shiny::modalDialog("Loading Data...", 
+                                        size = "l",
+                                        footer = NULL))
                                   
     rows_to_query = min(input$number_of_observations, max_observations())
     offset = 0
@@ -313,6 +327,9 @@ server = function(input, output, session) {
     data = data %>%
       geom_to_longitude_latitude() %>%
       unique()
+    
+    # Remove loading modal
+    shiny::removeModal()
     
     return(data)
   })
@@ -367,7 +384,9 @@ server = function(input, output, session) {
   output$map = leaflet::renderLeaflet({
     
     
+    shinyjs::disable("github_button")
     shinyjs::disable("data_source_button")
+    shinyjs::disable("help_button")
     
     data = filtered_data()
 
@@ -438,7 +457,9 @@ server = function(input, output, session) {
           layerId = 'selected_rectangle')
     }
     
+    shinyjs::enable("github_button")
     shinyjs::enable("data_source_button")
+    shinyjs::enable("help_button")
     
     return(map)
   })
