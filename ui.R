@@ -1,6 +1,6 @@
 # Header ----
 header = shinydashboard::dashboardHeader(
-  title = "Sacramento Open Data",
+  title = title,
   tags$li(
     class = "dropdown",
     tags$li(class = "dropdown navbar-button", 
