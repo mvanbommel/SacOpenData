@@ -215,6 +215,8 @@ server = function(input, output, session) {
                                             column_information = column_information)
   
           filter_values = input[[paste0("filter_", filter_index)]]
+                      
+
   
           if (!is.null(filter_values)) {
             if (variable_type %in% range_variable_types) {
@@ -228,6 +230,11 @@ server = function(input, output, session) {
               filter_query = paste0(filter_query, paste0(" AND ", variable_name, " >= ", lower_filter,
                                                          " AND ", variable_name, " <= ", upper_filter))
             } else {
+              # Escape single quotes in query
+              filter_values = stringr::str_replace_all(string = filter_values,
+                                                       pattern = "'",
+                                                       replacement = "''")
+
               filter_query = paste0(filter_query, " AND (", variable_name, " = '", paste0(filter_values,
                                                                                           collapse = paste0("' OR ", variable_name, " = '")),
                                                                                           "') ")
@@ -236,7 +243,7 @@ server = function(input, output, session) {
         }
       }
     }
-    
+print(filter_query)    
     return(filter_query)
   })
   

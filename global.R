@@ -1,7 +1,6 @@
 `%>%` = dplyr::`%>%`
 
 # TO DO
-# * fix trees cultivar filter error
 # * fix HTTP error on load (still an issue?)
 # * create README (include esri2sf reference)
 
