@@ -33,7 +33,11 @@ sidebar = shinydashboard::dashboardSidebar(
     data.intro = "Select a dataset from the drop down list."
   ),
   
-  shiny::uiOutput(outputId = "number_of_observations_ui"),
+  rintrojs::introBox(
+    shiny::uiOutput(outputId = "number_of_observations_ui"),
+    data.step = 2,
+    data.intro = "Select the number of points to display. Note that large values will slow loading times."
+  ),
   
   rintrojs::introBox(
     shinyWidgets::pickerInput(
@@ -46,7 +50,7 @@ sidebar = shinydashboard::dashboardSidebar(
                      `live-search` = TRUE), 
       multiple = TRUE
     ),
-    data.step = 2,
+    data.step = 3,
     data.intro = "Select variables on which to filter the dataset, and filters will automatically appear below."
   ),
   
@@ -63,7 +67,7 @@ sidebar = shinydashboard::dashboardSidebar(
                      `live-search` = TRUE), 
       multiple = TRUE
     ),
-    data.step = 3,
+    data.step = 4,
     data.intro = "Markers are the points that appear on the map. Use this drop down to select what information is displayed when a marker is clicked."
   ),
     
@@ -94,7 +98,7 @@ sidebar = shinydashboard::dashboardSidebar(
       status = "primary",
       outline = TRUE
     ),
-    data.step = 4,
+    data.step = 5,
     data.intro = "Use these checkboxes to alter how the markers are displayed."
   )
 )
@@ -132,10 +136,15 @@ body = shinydashboard::dashboardBody(
                         reactable::reactableOutput("data"))
       )
     ),
-    data.step = 5,
-    data.intro = "The filtered data will be displayed in both tabs:<br>
-                  - the Map tab shows a map of the data.<br>
-                  - the Data tab shows the data in table form, and provides a button to download the data.<br>
+    data.step = 6,
+    data.intro = "In the Map tab:<br>
+                  - the +/- buttons can be used to zoom in and out<br>
+                  - the square button allows you to draw a shape on the map that will filter results to be within that region<br>
+                  - the trash button allows you to delete your drawn shape<br>
+                  <br>
+                  In the Data tab:<br>
+                  - the data is presented in table form with all columns<br>
+                  - there is a button to download the data<br>
                   <br>
                   Happy exploring!"
   )

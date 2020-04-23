@@ -31,6 +31,11 @@ server = function(input, output, session) {
                                    zoom = map_zoom)
 
   # Observations ----
+  # Number of Observations ----
+  number_of_observations = shiny::debounce(
+    shiny::reactive({input$number_of_observations}),
+    millis = 1500)
+  
   # * Data Soruce Button ----
   shiny::observeEvent(input$data_source_button, {
     dataset_link = dataset_df$url[which(dataset_df$api == input$dataset_picker)]
@@ -49,7 +54,7 @@ server = function(input, output, session) {
   shiny::observeEvent(c(reactive_values$new_query_count,
                         input$map_draw_new_feature,
                         input$marker_picker,
-                        input$number_of_observations), { 
+                        number_of_observations()), { 
     if (!is.null(input$map_zoom)) {
       reactive_values$center_latitude = input$map_center$lat
       reactive_values$center_longitude = input$map_center$lng
@@ -138,23 +143,24 @@ server = function(input, output, session) {
   })
   
   # UI Elements ----
-  output$number_of_observations_ui = shiny::renderUI({
-    max_record_count = data_information()$max_record_count
-    max_value = max_observations()
-   
-    tagList(
-      shiny::numericInput(inputId = "number_of_observations",
-                          label = shiny::h3("Number of Data Points"),
-                          value = 100,
-                          min = 0,
-                          max = max_value),
-      shiny::helpText(shiny::HTML(paste0("Maximum ", max_value, ".",
-                                         ifelse(max_value > max_record_count, 
-                                                paste0("<br/>Note: values over ", max_record_count, " will slow down results."), 
-                                                "")
-      )))
-    )
-  })
+  output$number_of_observations_ui = 
+    shiny::renderUI({
+      max_record_count = data_information()$max_record_count
+      max_value = max_observations()
+      
+      tagList(
+        shiny::numericInput(inputId = "number_of_observations",
+                            label = shiny::h3("Number of Data Points"),
+                            value = 100,
+                            min = 0,
+                            max = max_value),
+        shiny::helpText(shiny::HTML(paste0("Maximum ", max_value, ".",
+                                           ifelse(max_value > max_record_count, 
+                                                  paste0("<br/>Note: values over ", max_record_count, " will slow down results."), 
+                                                  "")
+        )))
+      )
+    })
   
   shiny::observeEvent(input$dataset_picker, {
     shinyWidgets::updatePickerInput(
@@ -286,16 +292,16 @@ server = function(input, output, session) {
   # Only update data if new query
   filtered_data = shiny::eventReactive(c(reactive_values$new_query_count,
                                          input$map_draw_new_feature,
-                                         input$number_of_observations), {
+                                         number_of_observations()), {
   
-    req(input$number_of_observations)  
+    req(number_of_observations())  
         
     # Create loading modal                                   
     shiny::showModal(shiny::modalDialog("Loading Data...", 
                                         size = "l",
                                         footer = NULL))
                                   
-    rows_to_query = min(input$number_of_observations, max_observations())
+    rows_to_query = min(number_of_observations(), max_observations())
     offset = 0
     data = NULL
     max_record_count = data_information()$max_record_count

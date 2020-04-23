@@ -1,16 +1,12 @@
 `%>%` = dplyr::`%>%`
 
-# TO DO ----
+# TO DO
 # * fix trees cultivar filter error
 # * fix HTTP error on load (still an issue?)
+# * create README (include esri2sf reference)
 
 # Next Step:
-# - 
-
-# Generalizing to Other data providers
-# * make separate file to hold changing data?
-# * changing dataset_list
-# * editing latitude_bounds and longitude_bounds
+# 
 
 # DATA ----
 # * Load Source Information ----
