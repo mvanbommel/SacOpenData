@@ -1,6 +1,10 @@
 # SacOpenData
 
+[Link to Live Version](https://mvanbommel.shinyapps.io/SacOpenData/)
+
 An app allowing users to view, manipulate, and download various City of Sacramento Open Data Sets. Additionally, a easily ediatable template to repurpose the app for any collection of data sets with GeoServices REST APIs with point geometry objects.
+
+![Screenshot](screenshot.png)
 
 ## Building Your Own Version
 This app can be easily edited for use with any collection of data sets with [Geoservices](http://geoservices.github.io/) REST APIs that use [point geometry objects](https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm). Many cities and organizations make their open data sets available through Geoservices, and a full collection of over 180,000 data sets is available on [ArcGIS Hub](https://hub.arcgis.com/search?collection=Dataset).
