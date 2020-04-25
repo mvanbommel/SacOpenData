@@ -9,5 +9,7 @@ To create your own version of this app, simply [fork](https://help.github.com/en
 
 In order to run the app, you will need to [install R](https://cran.r-project.org/) ([installing RStudio](https://rstudio.com/products/rstudio/) is also recommended). When you run your app, the [`check_packages.R`](https://github.com/mvanbommel/SacOpenData/blob/master/check_packages.R) script will ensure all necessary packages are loaded, and thus load time might be quite slow the first time. If you are unfamiliar with Shiny, there are [tutorials](https://shiny.rstudio.com/tutorial/) available.
 
+To learn more about sharing or publishing your app, see the [Share Your Apps](https://shiny.rstudio.com/tutorial/written-tutorial/lesson7/) tutorial.
+
 ## Tools
 This app is built using [R](https://www.r-project.org/)'s [Shiny](https://shiny.rstudio.com/) package with the [Shiny Dashboard](https://rstudio.github.io/shinydashboard/) framework. The map is created using the [leaflet](https://rstudio.github.io/leaflet/) package to implement the [Leaflet](https://leafletjs.com/) JavaScript library. API calls are performed using the [mvanbommel/esri2sf](https://github.com/mvanbommel/esri2sf) package (forked from [yonghah/esri2sf](https://github.com/yonghah/esri2sf)).
