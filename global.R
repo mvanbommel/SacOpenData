@@ -1,11 +1,6 @@
+source("check_packages.R")
+
 `%>%` = dplyr::`%>%`
-
-# TO DO
-# * fix HTTP error on load (still an issue?)
-# * create README (include esri2sf reference)
-
-# Next Step:
-# 
 
 # DATA ----
 # * Load Source Information ----
