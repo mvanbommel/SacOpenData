@@ -1,8 +1,10 @@
 # Ensure all required package are installed
+# Run source("check_packages.R"), or step through script line by line
 
 installed_packages = installed.packages()
 
-required_packages = c("dplyr", 
+required_packages = c("devtools",
+                      "dplyr", 
                       "esri2sf", 
                       "jsonlite", 
                       "leaflet", 

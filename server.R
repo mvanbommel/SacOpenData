@@ -243,7 +243,6 @@ server = function(input, output, session) {
         }
       }
     }
-print(filter_query)    
     return(filter_query)
   })
   
