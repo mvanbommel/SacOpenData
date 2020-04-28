@@ -1,7 +1,10 @@
+// Set input value for clearing rectangle to FALSE when app opens
 $( document ).on("shiny:sessioninitialized", function(event) {
   Shiny.setInputValue("clear_rectangle", "FALSE");           
 });
 
+
+// Change the delete button in leaflet map and add functionality
 function changeDeleteButton() {
   // If leaflet delete button is present, replace it with custom button
   if ( $( "a.leaflet-draw-edit-remove" ).length ) {

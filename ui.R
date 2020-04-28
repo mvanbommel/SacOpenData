@@ -1,18 +1,17 @@
 # Header ----
 header = shinydashboard::dashboardHeader(
   title = title,
-  tags$li(
-    class = "dropdown",
-    tags$li(class = "dropdown navbar-button", 
+  tags$li(class = "dropdown",
+    tags$li(class = "navbar-button", 
             shiny::actionButton(inputId = "github_button",
                                 label = "",
                                 icon = shiny::icon("github", "fa-3x"),
                                 onclick = "window.open('https://github.com/mvanbommel/SacOpenData', '_blank')")),
-    tags$li(class = "dropdown navbar-button", 
+    tags$li(class = "navbar-button", 
             shiny::actionButton(inputId = "data_source_button",
                                 label = "",
                                 icon = shiny::icon("info-circle", "fa-3x"))),
-    tags$li(class = "dropdown navbar-button",
+    tags$li(class = "navbar-button",
             shiny::actionButton(inputId = "help_button",
                                 label = "",
                                 icon = shiny::icon("question-circle", "fa-3x")))

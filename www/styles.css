@@ -62,17 +62,6 @@
 /******************************************************************************
 * NAVBAR
 ******************************************************************************/
-/* Control main header color widths */
-.main-header .logo {
-  width: 325px;
-  float: left;
-}
-
-.main-header .navbar-static-top {
-  margin-left: 325px;
-}
-
-
 /* Set button colors to match navbar (and change on hover) */
 #github_button, #data_source_button, #help_button {
   background-color: #357ca5;
@@ -88,29 +77,24 @@
   border-color: #f4f4f4;
 }
 
-/* Screens more narrow than 350px */
-/* Subtract 50px to leave room for sidebar toggle button */
-@media (max-width: 350px) {
-  .sidebar {
-    width: calc(100vw - 50px);
-  }
-  
-  #new_points {
-    left: 0px;
-  }
-  
-  .main-header .logo {
-    width: calc(100vw - 50px);
-  }
-  .main-header .navbar-static-top {
-    margin-left: calc(100vw - 50px);
-  }
-}
-
-
 /******************************************************************************
 * SIDEBAR AND NAVBAR
 ******************************************************************************/
+/* Give space for longer title */
+.main-header .logo {
+  min-width: 325px;
+}
+.main-header .navbar-static-top {
+  margin-left: 325px;
+}
+
+/* Remove changes when navbar transitions to two lines */
+@media (max-width: 767px) {
+  .main-header .navbar-static-top {
+    margin: 0;
+  }
+}
+
 /* Navbar and Sidebar Button Color */
 .skin-blue .main-header .navbar .sidebar-toggle {
   background-color: #357ca5;

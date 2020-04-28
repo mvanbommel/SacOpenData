@@ -45,9 +45,16 @@ server = function(input, output, session) {
   
   # * Help Button
   shiny::observeEvent(input$help_button, {
-   rintrojs::introjs(session = session,
-                     options = list("skipLabel" = "Exit",
-                                    "overlayOpacity" = "0.9"))
+    # Force sidebar open
+    shinyjs::addClass(selector = "body", class = "sidebar-open")
+    shinyjs::removeClass(selector = "body", class = "sidebar-collapse")
+    # Wait for sidebar to open before starting intro
+    shinyjs::delay(300,
+      rintrojs::introjs(session = session,
+                        options = list("skipLabel" = "Exit",
+                                       "overlayOpacity" = "0.9")
+      )
+    )
   })
   
   # * Save Map Center / Zoom ----
