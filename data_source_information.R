@@ -2,6 +2,9 @@
 # Set the title for the app, displayed in top left corner
 title = "Sacramento Open Data"
 
+# GitHub Link ----
+github_link = "https://github.com/mvanbommel/SacOpenData"
+
 # Map Bounds ----
 # Set the bounds for points that will be displayed on the map
 # To show all points, regardless of location, use values:
