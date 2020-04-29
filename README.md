@@ -6,6 +6,13 @@ An app allowing users to view, manipulate, and download various City of Sacramen
 
 ![Screenshot](screenshot.png)
 
+## Tools
+- App: [R](https://www.r-project.org/)'s [Shiny](https://shiny.rstudio.com/) package.
+- Layout: [Shiny Dashboard](https://rstudio.github.io/shinydashboard/) framework
+- Map: [leaflet](https://rstudio.github.io/leaflet/) R package to implement the [Leaflet](https://leafletjs.com/) JavaScript library 
+- Walkthrough [introjs](https://github.com/carlganz/rintrojs) R package to implement the [intro.js](https://introjs.com/docs/) JavaScript library 
+- API calls: [mvanbommel/esri2sf](https://github.com/mvanbommel/esri2sf) package (forked from [yonghah/esri2sf](https://github.com/yonghah/esri2sf)).
+
 ## Building Your Own Version
 This app can be easily edited for use with any collection of data sets with [Geoservices](http://geoservices.github.io/) REST APIs that use [point geometry objects](https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm). Many cities and organizations make their open data sets available through Geoservices, and a full collection of over 180,000 data sets is available on [ArcGIS Hub](https://hub.arcgis.com/search?collection=Dataset).
 
@@ -15,5 +22,5 @@ In order to run the app, you will need to [install R](https://cran.r-project.org
 
 To learn more about sharing or publishing your app, see the [Share Your Apps](https://shiny.rstudio.com/tutorial/written-tutorial/lesson7/) tutorial.
 
-## Tools
-This app is built using [R](https://www.r-project.org/)'s [Shiny](https://shiny.rstudio.com/) package with the [Shiny Dashboard](https://rstudio.github.io/shinydashboard/) framework. The map is created using the [leaflet](https://rstudio.github.io/leaflet/) package to implement the [Leaflet](https://leafletjs.com/) JavaScript library. API calls are performed using the [mvanbommel/esri2sf](https://github.com/mvanbommel/esri2sf) package (forked from [yonghah/esri2sf](https://github.com/yonghah/esri2sf)).
+### Other Versions
+- [SacCountyOpenData](https://mvanbommel.shinyapps.io/SacCountyOpenData/) ([GitHub](https://github.com/mvanbommel/SacCountyOpenData))
