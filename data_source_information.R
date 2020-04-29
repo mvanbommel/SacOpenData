@@ -3,6 +3,7 @@
 title = "Sacramento Open Data"
 
 # GitHub Link ----
+# Provide the link to the GitHub repo for the app
 github_link = "https://github.com/mvanbommel/SacOpenData"
 
 # Map Bounds ----
