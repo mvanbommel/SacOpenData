@@ -1,5 +1,5 @@
 # Ensure all required package are installed
-# Run source("packages.R"), or step through script line by line
+# Run source("init.R"), or step through script line by line
 
 installed_packages = installed.packages()
 
