@@ -5,6 +5,7 @@ installed_packages = installed.packages()
 
 # List esri2sf last so that its dependencies are installed prior to installation
 required_packages = c("dplyr", 
+                      "httr",
                       "jsonlite", 
                       "leaflet", 
                       "leaflet.extras", 
