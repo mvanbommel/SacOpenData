@@ -1,4 +1,2 @@
-# File for the heroku build process
-
 libudunits2-dev
 libgdal-dev
