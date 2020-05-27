@@ -385,7 +385,7 @@ server = function(input, output, session) {
     
     column_information = data_information()$columns
     
-    if (number_marker_variables > 0 & all(marker_variables %in% column_information$name)) {
+    if (number_marker_variables > 0 && all(marker_variables %in% column_information$name)) {
       data = filtered_data()
       
       marker_string = ""

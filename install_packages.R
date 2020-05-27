@@ -23,6 +23,6 @@ install_packages = function(heroku_build = FALSE) {
   }
   
   # Local Package Files
-  path = ifelse(heroku_build, "/app/", "/")
-  install.packages(paste0(path, "esri2sf_0.1.1.tar.gz"), repos = NULL, type = "source")
+  path = ifelse(heroku_build, "/app/", "")
+  install.packages(paste0("esri2sf_0.1.1.tar.gz"), repos = NULL, type = "source")
 }
