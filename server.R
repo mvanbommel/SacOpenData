@@ -404,7 +404,7 @@ server = function(input, output, session) {
         marker_string = paste0(marker_string, variable, ": ", variable_data, "<br>")
       }
     } else {
-      marker_string = "Use Markers input in sidebar to select variables to display here."
+      marker_string = "Use Markers dropdown in sidebar to select variables to display here."
     }
     
     return(marker_string)
