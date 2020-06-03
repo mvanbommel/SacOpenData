@@ -35,5 +35,8 @@ command. If you are unfamiliar with Shiny, there are [tutorials](https://shiny.r
 
 To learn more about sharing or publishing your app, see the [Share Your Apps](https://shiny.rstudio.com/tutorial/written-tutorial/lesson7/) tutorial.
 
+### Contributing
+Contributions are welcomed! See the [contributing guide](https://github.com/mvanbommel/SacOpenData/blob/master/CONTRIBUTING.md) for more details.
+
 ### Other Versions
 - [SacCountyOpenData](https://mvanbommel.shinyapps.io/SacCountyOpenData/) ([GitHub](https://github.com/mvanbommel/SacCountyOpenData))
