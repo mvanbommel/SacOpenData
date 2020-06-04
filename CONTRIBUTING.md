@@ -8,7 +8,7 @@ The following guidelines have been created to make the contributing process as s
 Feel free to contribute anything that improves the project - new features, bug fixes, improved documentation, etc. There are likely open [issues](https://github.com/mvanbommel/SacOpenData/issues) that can be addressed, or, if you have an idea that is not already an issue, feel free to create a new issue.
 
 ### How to Contribute
-- Ensure there is an [issue](https://github.com/mvanbommel/SacOpenData/issues) referencing your intended change (if it does not already exist, create a new issue)
+- Ensure there is an [issue](https://github.com/mvanbommel/SacOpenData/issues) referencing your intended change (if it does not already exist, create a new issue and include a detailed description of the change)
 - [Fork](https://help.github.com/en/enterprise/2.13/user/articles/fork-a-repo#:~:text=A%20fork%20is%20a%20copy,point%20for%20your%20own%20idea.) the repository
 - Within your forked repository, [create a branch](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-and-deleting-branches-within-your-repository) off of the master branch with a name describing the change
 - Make, commit, and push your changes to your new branch
