@@ -22,6 +22,12 @@ server = function(input, output, session) {
     shinyjs::disable("help_button")
   })
   
+  # Auto invalidate to prevent app timeout
+  autoInvalidate = shiny::reactiveTimer(10000)
+  shiny::observe({
+    autoInvalidate()
+  })
+  
   # Initialize Reactive Values ----
   reactive_values = reactiveValues(live_api = TRUE,
                                    new_query_count = 0,
