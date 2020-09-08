@@ -22,32 +22,21 @@ range_variable_types = c("smallinteger", "integer", "single", "double", "oid", "
 # FUNCTIONS ----
 # * Utility ----
 epoch_to_calendar_date = function(epoch) {
-  as.Date(as.POSIXct(epoch / 1000, 
+  as.Date(as.POSIXct(as.numeric(epoch / 1000), 
                      origin = '1970-01-01',
                      tz = 'America/Los_Angeles'),
           format = '%y-%m-%d')
 }
 
-geom_to_longitude_latitude = function(data) {
-  if (!is.null(data)) {
-    if ("geoms" %in% colnames(data)) {
-      coordinates = do.call(rbind, sf::st_geometry(data$geoms)) %>% 
-        as.data.frame(row.names = as.character(1:nrow(data))) %>% 
-        setNames(c("longitude", "latitude"))
-     
-      # Values outside of bounds to NA
-      coordinates$longitude[coordinates$longitude < longitude_bounds[1]] = NA
-      coordinates$longitude[coordinates$longitude > longitude_bounds[2]] = NA
-      coordinates$latitude[coordinates$latitude < latitude_bounds[1]] = NA
-      coordinates$latitude[coordinates$latitude > latitude_bounds[2]] = NA
-      
-      data = cbind(data, coordinates) %>%
-        dplyr::select(-geoms)
-    }
-  }
+
+get_geometry_type = function(data) {
+  type = tryCatch({
+    sf::st_geometry_type(data$geoms, by_geometry = FALSE)
+  }, error = function(e) {
+    "NA"
+  })
   
-  data
-  
+  return(type)
 }
 
 # * Data ----
