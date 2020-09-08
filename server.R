@@ -191,6 +191,18 @@ server = function(input, output, session) {
       selected = NULL)
   })
   
+  shiny::observeEvent(geometry_type(), {
+    if (geometry_type() == "POINT") {
+      shinyjs::enable("markers_check_box")
+      shinyjs::enable("marker_groups_check_box")
+      shinyjs::enable("heatmap_check_box")
+    } else {
+      shinyjs::disable("markers_check_box")
+      shinyjs::disable("marker_groups_check_box")
+      shinyjs::disable("heatmap_check_box")
+    }
+  })
+  
   # * Filters ----
   output$filters = shiny::renderUI({
     filters = input$filter_picker
@@ -299,8 +311,7 @@ server = function(input, output, session) {
                                      where = query_filter(),
                                      additional_parameters = query_parameters(),
                                      limit = query_limit,
-                                     offset = offset) %>%
-                      as.data.frame(),
+                                     offset = offset),
                     error = function(err) {
                       print(paste0("Error in query: ", err))
                       return(NULL)
@@ -349,15 +360,13 @@ server = function(input, output, session) {
       rows_to_query = rows_to_query - query_limit
     }
     
-    data = data %>%
-      geom_to_longitude_latitude() %>%
-      unique()
+    data = unique(data)
     
     # Covert dates to date format
     column_information = data_information()$columns
     if (any(column_information$type == "esriFieldTypeDate", na.rm = TRUE)) {
       for (variable in column_information$name[column_information$type == "esriFieldTypeDate"]) {
-        data[, variable] = epoch_to_calendar_date(data[, variable])
+        data[, variable] = epoch_to_calendar_date(data[, variable, drop = TRUE])
       }
     }
     
@@ -367,15 +376,21 @@ server = function(input, output, session) {
     return(data)
   })
   
+  geometry_type = reactive({
+    get_geometry_type(data = filtered_data())
+  })
   
   # * Output ----
   output$data = reactable::renderReactable({
-    data = filtered_data()
+    data = as.data.frame(filtered_data())
     
     if (is.null(data)) {
       data = data.frame("Data" = "No results meet filter criteria.")
+    } else if ("geoms" %in% colnames(data)) {
+      # Remove "geoms" column
+      data = dplyr::select(data, -geoms)
     }
-    
+
     return(reactable::reactable(data))
   })
   
@@ -405,7 +420,7 @@ server = function(input, output, session) {
       marker_string = ""
      
       for (variable in marker_variables) {
-        variable_data = data[, variable]
+        variable_data = data[, variable, drop = TRUE]
 
         marker_string = paste0(marker_string, variable, ": ", variable_data, "<br>")
       }
@@ -424,6 +439,7 @@ server = function(input, output, session) {
     shinyjs::disable("help_button")
     
     data = filtered_data()
+    geometry_type = geometry_type()
 
     map = leaflet::leaflet(data = data) %>% 
       leaflet::addTiles() %>%
@@ -443,30 +459,35 @@ server = function(input, output, session) {
         editOptions = leaflet.extras::editToolbarOptions(edit = FALSE, selectedPathOptions = leaflet.extras::selectedPathOptions()))
     
     if (!is.null(data) && nrow(data) > 0) {
-      data = data %>%
-        # Need to filter NAs to avoid javascript error
-        filter(!is.na(latitude) & !is.na(longitude))
-      
-      if (input$markers_check_box) {
-        if (input$marker_groups_check_box) {
-          map = map %>% 
-            leaflet::addMarkers(~data$longitude, 
-                                ~data$latitude, 
-                                popup = ~marker_popup(),
-                                clusterOptions = leaflet::markerClusterOptions())
-        } else {
-          map = map %>% 
-            leaflet::addMarkers(~data$longitude, 
-                                ~data$latitude,
-                                popup = ~marker_popup())
+
+      if (geometry_type %in% c("POINT")) {
+        if (input$markers_check_box) {
+          if (input$marker_groups_check_box) {
+           
+            map = map %>% 
+              leaflet::addMarkers(data = data, 
+                                  popup = ~marker_popup(),
+                                  clusterOptions = leaflet::markerClusterOptions())
+          } else {
+            map = map %>% 
+              leaflet::addMarkers(data = data,
+                                  popup = ~marker_popup())
+          }
         }
-      }
-      
-      if (input$heatmap_check_box) {
+        
+        if (input$heatmap_check_box) {
+          map = map %>% 
+            leaflet.extras::addHeatmap(data = data,
+                                       radius = 10) 
+        }
+      } else if (geometry_type == "MULTIPOLYGON") {
         map = map %>% 
-          leaflet.extras::addHeatmap(~data$longitude, 
-                                     ~data$latitude,
-                                     radius = 10) 
+          leaflet::addPolygons(data = data, 
+                               popup = ~marker_popup())
+      } else if (geometry_type == "MULTILINESTRING") {
+        map = map %>% 
+          leaflet::addPolylines(data = data, 
+                                popup = ~marker_popup())
       }
     }
     
